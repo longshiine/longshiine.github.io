@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="kor">
+<head>
+    <meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta name="author" content="Jay_Kim">
+
+
+    <meta name="subtitle" content="Jay's blog">
+
+
+    <meta name="description" content="blog">
+
+
+    <meta name="keywords" content="deeplearning, blog, book, life, social">
+
+
+<title>Convolution Layer 구현 | Jaylog</title>
+
+
+
+    <link rel="icon" href="/favicon.ico">
+
+
+
+
+    <!-- stylesheets list from _config.yml -->
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+
+
+
+    <!-- scripts list from _config.yml -->
+    
+    <script src="/js/script.js"></script>
+    
+    <script src="/js/tocbot.min.js"></script>
+    
+
+
+
+    
+    
+        
+            <!-- MathJax配置，可通过单美元符号书写行内公式等 -->
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+    "HTML-CSS": {
+        preferredFont: "TeX",
+        availableFonts: ["STIX","TeX"],
+        linebreaks: { automatic:true },
+        EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50)
+    },
+    tex2jax: {
+        inlineMath: [ ["$", "$"], ["\\(","\\)"] ],
+        processEscapes: true,
+        ignoreClass: "tex2jax_ignore|dno",
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+    },
+    TeX: {
+        equationNumbers: { autoNumber: "AMS" },
+        noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } },
+        Macros: { href: "{}" }
+    },
+    messageStyle: "none"
+    });
+</script>
+<!-- 给MathJax元素添加has-jax class -->
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+<!-- 通过连接CDN加载MathJax的js代码 -->
+<script type="text/javascript" async
+        src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML">
+</script>
+
+
+        
+    
+
+
+<meta name="generator" content="Hexo 5.0.0"></head>
+<body>
+    <div class="wrapper">
+        <header>
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-header header-logo"><a href="/">Jay_log</a></div>
+            <div class="menu navbar-right">
+                
+                    <a class="menu-item" href="/archives">Posts</a>
+                
+                    <a class="menu-item" href="/category">Categories</a>
+                
+                    <a class="menu-item" href="/tag">Tags</a>
+                
+                    <a class="menu-item" href="/about">About</a>
+                
+                <input id="switch_default" type="checkbox" class="switch_default">
+                <label for="switch_default" class="toggleBtn"></label>
+            </div>
+        </div>
+    </nav>
+
+    
+    <nav class="navbar-mobile" id="nav-mobile">
+        <div class="container">
+            <div class="navbar-header">
+                <div>
+                    <a href="/">Jay_log</a><a id="mobile-toggle-theme">·&nbsp;Light</a>
+                </div>
+                <div class="menu-toggle" onclick="mobileBtn()">&#9776; Menu</div>
+            </div>
+            <div class="menu" id="mobile-menu">
+                
+                    <a class="menu-item" href="/archives">Posts</a>
+                
+                    <a class="menu-item" href="/category">Categories</a>
+                
+                    <a class="menu-item" href="/tag">Tags</a>
+                
+                    <a class="menu-item" href="/about">About</a>
+                
+            </div>
+        </div>
+    </nav>
+
+</header>
+<script>
+    var mobileBtn = function f() {
+        var toggleMenu = document.getElementsByClassName("menu-toggle")[0];
+        var mobileMenu = document.getElementById("mobile-menu");
+        if(toggleMenu.classList.contains("active")){
+           toggleMenu.classList.remove("active")
+            mobileMenu.classList.remove("active")
+        }else{
+            toggleMenu.classList.add("active")
+            mobileMenu.classList.add("active")
+        }
+    }
+</script>
+        <div class="main">
+            <div class="container">
+    
+    
+        <div class="post-toc">
+    <div class="tocbot-list">
+    </div>
+    <div class="tocbot-list-menu">
+        <a class="tocbot-toc-expand" onclick="expand_toc()">Expand all</a>
+        <a onclick="go_top()">Back to top</a>
+        <a onclick="go_bottom()">Go to bottom</a>
+    </div>
+</div>
+
+<script>
+    document.ready(
+        function () {
+            tocbot.init({
+                tocSelector: '.tocbot-list',
+                contentSelector: '.post-content',
+                headingSelector: 'h1, h2, h3, h4, h5',
+                collapseDepth: 1,
+                orderedList: false,
+                scrollSmooth: true,
+            })
+        }
+    )
+
+    function expand_toc() {
+        var b = document.querySelector(".tocbot-toc-expand");
+        tocbot.init({
+            tocSelector: '.tocbot-list',
+            contentSelector: '.post-content',
+            headingSelector: 'h1, h2, h3, h4, h5',
+            collapseDepth: 6,
+            orderedList: false,
+            scrollSmooth: true,
+        });
+        b.setAttribute("onclick", "collapse_toc()");
+        b.innerHTML = "Collapse all"
+    }
+
+    function collapse_toc() {
+        var b = document.querySelector(".tocbot-toc-expand");
+        tocbot.init({
+            tocSelector: '.tocbot-list',
+            contentSelector: '.post-content',
+            headingSelector: 'h1, h2, h3, h4, h5',
+            collapseDepth: 1,
+            orderedList: false,
+            scrollSmooth: true,
+        });
+        b.setAttribute("onclick", "expand_toc()");
+        b.innerHTML = "Expand all"
+    }
+
+    function go_top() {
+        window.scrollTo(0, 0);
+    }
+
+    function go_bottom() {
+        window.scrollTo(0, document.body.scrollHeight);
+    }
+
+</script>
+    
+
+    
+    <article class="post-wrap">
+        <header class="post-header">
+            <h1 class="post-title">Convolution Layer 구현</h1>
+            
+                <div class="post-meta">
+                    
+                        Author: <a itemprop="author" rel="author" href="/">Jay_Kim</a>
+                    
+
+                    
+                        <span class="post-time">
+                        Date: <a href="#">August 29, 2020&nbsp;&nbsp;15:40:48</a>
+                        </span>
+                    
+
+                    
+                        <span class="post-category">
+                    Category:
+                            
+                                <a href="/categories/DeepLearning/">DeepLearning</a>
+                            
+                        </span>
+                    
+                </div>
+            
+        </header>
+
+        <div class="post-content">
+            <p>cs231n assignment2의 <code>Convolution Layer</code>를 구현해보며 느낀점을 정리해보았다.<br>개념보다는 구현에 초점을 맞춘 포스트이므로 참고바람.</p>
+<h3 id="Convolution-Layer"><a href="#Convolution-Layer" class="headerlink" title="Convolution Layer"></a>Convolution Layer</h3><p>CNN의 핵심은 convolution operation 즉, 합성곱 연산이다. 기존의 Fully Connected Layer와 다른 Convolution Layer의 특징은 Input의 Spatial Structure, 공간적 구조를 보존한다는 것이다. Convolution 연산을 수행하면 input에 대한 feature map을 뽑을 수 있는데,</p>
+<div class="image-box">
+                <img src="/image/post_image/20200829/conv_layer1.png" alt="요로코롬1" title="" class="">
+                <p class="image-box-title">요로코롬1</p>
+            </div>
+<div class="image-box">
+                <img src="/image/post_image/20200829/conv_layer2.png" alt="요로코롬2" title="" class="">
+                <p class="image-box-title">요로코롬2</p>
+            </div>
+
+<p>filter의 개수에 따라 output인 activation map의 depth가 달라지며, filter가 어떤식으로 input을 sliding 하는지에 따라 activation map의 size가 변화한다. input_size(N), filter_size(F), padding(p) 등의 조건이 있다면 다음의 식으로 간단하게 Output size를 알아낼 수 있다.</p>
+<p>$$(N + 2p - F) / Stride + 1 $$</p>
+<p>그럼 정리해보자면,<br>Convolution layer란 녀석은 input을 각 필터로 sliding하면서 값을 계산하기만 하면 되는 짜기 easy한 녀석이 아닐까?</p>
+<p>맞긴한데 짜면서 아주 호되게 혼났다.</p>
+<h3 id="Forward-Pass"><a href="#Forward-Pass" class="headerlink" title="Forward Pass"></a>Forward Pass</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">conv_forward_naive</span>(<span class="params">x, w, b, conv_param</span>):</span></span><br><span class="line"><span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">Input:</span></span><br><span class="line"><span class="string">- x: Input data of shape (N, C, H, W)</span></span><br><span class="line"><span class="string">- w: Filter weights of shape (F, C, HH, WW)</span></span><br><span class="line"><span class="string">- b: Biases, of shape (F,)</span></span><br><span class="line"><span class="string">- conv_param: A dictionary with the following keys:</span></span><br><span class="line"><span class="string">    - &#x27;stride&#x27;: The number of pixels between adjacent receptive fields in the horizontal and vertical directions.</span></span><br><span class="line"><span class="string">    - &#x27;pad&#x27;: The number of pixels that will be used to zero-pad the input.</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">Returns a tuple of:</span></span><br><span class="line"><span class="string">- out: Output data, of shape (N, F, H&#x27;, W&#x27;) where H&#x27; and W&#x27; are given by</span></span><br><span class="line"><span class="string">    H&#x27; = 1 + (H + 2 * pad - HH) / stride</span></span><br><span class="line"><span class="string">    W&#x27; = 1 + (W + 2 * pad - WW) / stride</span></span><br><span class="line"><span class="string">- cache: (x, w, b, conv_param)</span></span><br><span class="line"><span class="string">&quot;&quot;&quot;</span></span><br><span class="line"></span><br><span class="line">out = <span class="literal">None</span></span><br><span class="line">cache = (x, w, b, conv_param)</span><br><span class="line"></span><br><span class="line"><span class="keyword">return</span> out, cache</span><br></pre></td></tr></table></figure>
+
+<p>문제를 조금 해석해보자면, </p>
+<ol>
+<li>size가 H x W x C(channel의 수, rgb 같은) 인 이미지 N개가 input x로 들어왔다.</li>
+<li>input을 size가 HH x WW x C인 필터 F개로 sliding 하고,</li>
+<li>size가 F인 bias도 더해서,</li>
+<li>size가 H’x W’x F인 out N개로 만들어내라.</li>
+<li>이때 H’, W’은 위에서 살펴보았던 식으로 잘 계산해라</li>
+</ol>
+<p>요런 문제이다.<br>그럼 computation graph를 한번 생각해보자.</p>
+<div class="image-box">
+                <img src="/image/post_image/20200829/Conv_forward.jpeg" alt="computational graph" title="" class="">
+                <p class="image-box-title">computational graph</p>
+            </div>
+
+<p>다이렉트로 out이 나오는 그래프는 아니다.<br>먼저 input x에 padding을 추가해주고, filter의 크기만큼을 crop한 뒤, filter와 내적을 취해주고, bias term을 더해주는 과정이다.<br>이 과정을 거치고 나면 (N,F)의 spatial_out이 계산되는 데,</p>
+<div class="image-box">
+                <img src="/image/post_image/20200829/conv_layer3.png" alt="spatial_out 생김새" title="" class="">
+                <p class="image-box-title">spatial_out 생김새</p>
+            </div>
+
+<p>요 그림에서 가운데 공이 담긴 녀석(공이 각각의 필터가 계산한 값이고, F개 있다고 보면 됨)이 N개 있는 꼴이라고 생각하면 된다.</p>
+<p>이 과정을 H’xW’ 번 해주면 우리가 원하는 out(N,F,H’,W’)을 얻어낼 수 있는 것이다!</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">N, C, H, W = x.shape</span><br><span class="line">F, C, HH, WW = w.shape</span><br><span class="line"></span><br><span class="line">stride = conv_param[<span class="string">&#x27;stride&#x27;</span>]</span><br><span class="line">pad = conv_param[<span class="string">&#x27;pad&#x27;</span>]</span><br><span class="line"></span><br><span class="line">npad = ((<span class="number">0</span>,<span class="number">0</span>),  (<span class="number">0</span>,<span class="number">0</span>),  (pad,pad),  (pad,pad)) <span class="comment"># padding 위한 값</span></span><br><span class="line">filter_size = C*HH*WW <span class="comment"># 내적의 용이성을 위해 미리 계산해두는 값</span></span><br><span class="line"></span><br><span class="line">H_out = int(<span class="number">1</span> + (H + <span class="number">2</span> * pad - HH) / stride) <span class="comment"># H&#x27;</span></span><br><span class="line">W_out = int(<span class="number">1</span> + (W + <span class="number">2</span> * pad - WW) / stride) <span class="comment"># W&#x27;</span></span><br><span class="line"></span><br><span class="line">out = np.zeros((N, F, H_out, W_out)) <span class="comment"># 최종적으로 구할 out 초기화 (N, F, H&#x27;, W&#x27;)</span></span><br><span class="line">x_pad = np.pad(x, npad,  <span class="string">&#x27;constant&#x27;</span>, constant_values=(<span class="number">0</span>)) <span class="comment"># x에 pad 크기만큼 zero-padding</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> height <span class="keyword">in</span>  range(H_out):</span><br><span class="line">    <span class="keyword">for</span> width <span class="keyword">in</span>  range(W_out):</span><br><span class="line">        x_crop = x_pad[np.arange(N),  :, height*stride:height*stride+HH, width*stride:width*stride+WW]  <span class="comment"># x에서 (N,C,HH,WW)크기만큼을 crop</span></span><br><span class="line">        x_crop_stretch = x_crop.reshape(N, filter_size)  <span class="comment"># (N, filter_size)</span></span><br><span class="line">        w_stretch = w.reshape(F, filter_size)  <span class="comment"># (F, filter_size)</span></span><br><span class="line">        spatial_out = np.dot(x_crop_stretch, w_stretch.T) + b.reshape((<span class="number">1</span>,F)) <span class="comment"># (N,F)</span></span><br><span class="line">        out[np.arange(N),  :, height, width] = spatial_out</span><br></pre></td></tr></table></figure>
+
+<h3 id="Backward-Pass"><a href="#Backward-Pass" class="headerlink" title="Backward Pass"></a>Backward Pass</h3><p>포워드 열심히 짰으니 이젠 backward 짤 차례다.<br>쫄면 안된다. (이자는 쫄았다)</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">conv_backward_naive</span>(<span class="params">dout, cache</span>):</span></span><br><span class="line">    <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">    Inputs:</span></span><br><span class="line"><span class="string">    - dout: Upstream derivatives.</span></span><br><span class="line"><span class="string">    - cache: A tuple of (x, w, b, conv_param) as in conv_forward_naive</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    Returns a tuple of:</span></span><br><span class="line"><span class="string">    - dx: Gradient with respect to x</span></span><br><span class="line"><span class="string">    - dw: Gradient with respect to w</span></span><br><span class="line"><span class="string">    - db: Gradient with respect to b</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line">    dx, dw, db = <span class="literal">None</span>, <span class="literal">None</span>, <span class="literal">None</span></span><br><span class="line">    <span class="keyword">return</span> dx, dw, db</span><br></pre></td></tr></table></figure>
+
+<p>문제는 참 심플하다.<br>아까 그려놓은 computational graph보면서 dx, dw, db를 구하면 된다.</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">x, w, b, conv_param = cache</span><br><span class="line">N, C, H, W = x.shape</span><br><span class="line">F, C, HH, WW = w.shape</span><br><span class="line">N, F, H_out, W_out = dout.shape</span><br><span class="line"></span><br><span class="line">stride = conv_param[<span class="string">&#x27;stride&#x27;</span>]</span><br><span class="line">pad = conv_param[<span class="string">&#x27;pad&#x27;</span>]</span><br><span class="line"></span><br><span class="line">npad = ((<span class="number">0</span>,<span class="number">0</span>), (<span class="number">0</span>,<span class="number">0</span>), (pad,pad), (pad,pad)) <span class="comment"># x = (N, C, H+2*pad, W+2*pad)</span></span><br><span class="line">filter_size = C*HH*WW <span class="comment"># scalar, for stretch</span></span><br><span class="line">x_pad = np.pad(x, npad, <span class="string">&#x27;constant&#x27;</span>, constant_values=(<span class="number">0</span>))</span><br><span class="line"></span><br><span class="line">dx_pad = np.zeros((N,C,H+<span class="number">2</span>*pad,W+<span class="number">2</span>*pad))</span><br><span class="line">dw = np.zeros((F,C,HH,WW))</span><br><span class="line">db = np.zeros(F)</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> height <span class="keyword">in</span> range(H_out):</span><br><span class="line">    <span class="keyword">for</span> width <span class="keyword">in</span> range(W_out):</span><br><span class="line">        dspatial_out = dout[np.arange(N), :, height, width] <span class="comment"># (N, F)</span></span><br><span class="line">        db += np.sum(dspatial_out, axis=<span class="number">0</span>) <span class="comment"># (F, )</span></span><br><span class="line"></span><br><span class="line">        x_tmp = x_pad[np.arange(N), :, height*stride:height*stride+HH, width*stride:width*stride+WW] <span class="comment"># (N, C, HH, WW)</span></span><br><span class="line">        dw_stretch = np.dot(dspatial_out.T, x_tmp.reshape(N, filter_size)) <span class="comment"># (N,F).T @ (N,filter_size) = (F, filter_size)</span></span><br><span class="line">        dw += dw_stretch.reshape(F,C,HH,WW)</span><br><span class="line"></span><br><span class="line">        w_stretch = w.reshape(F, filter_size) <span class="comment"># (F, filter_size)</span></span><br><span class="line">        dx_tmp_stretch = np.dot(dspatial_out, w_stretch) <span class="comment"># (N,F) @ (F,filter_size) = (N, filter_size)</span></span><br><span class="line">        dx_tmp = dx_tmp_stretch.reshape(N,C,HH,WW)</span><br><span class="line">        dx_pad[np.arange(N), :, height*stride:height*stride+HH, width*stride:width*stride+WW] += dx_tmp</span><br><span class="line"></span><br><span class="line">dx = dx_pad[np.arange(N), :, pad:H+pad, pad:W+pad] <span class="comment"># padding 제거한 값</span></span><br></pre></td></tr></table></figure>
+
+<p>간략히 설명하자면,</p>
+<p>spatial_out을 구해서 전체 out을 만들어 냈던 것처럼, dout에서 dspatial_out(N,F)을 crop하여 gradient를 계산해 나간다. 주의해야 할 것은 padding된 x값을 이용해 만들어 낸 out 이었기 때문에, dx_pad에 gradient를 계산해 놓고, padding을 제거한 값을 dx에 할당해야 한다는 것이다.</p>
+<p>backward 그래프도 그렸으나, 너무 지저분해서 올리진 않겠다..<br>(아이패드 갖고 싶습니다…)</p>
+<h3 id="느낀점"><a href="#느낀점" class="headerlink" title="느낀점"></a>느낀점</h3><blockquote>
+<p>4중 for문 돌릴 뻔했다.</p>
+</blockquote>
+<p>무엇을 기준으로 sliding 해나갈지가 너무 애매해서 일단 N, F, H, W 모두 돌렸다.근데 그렇게 한번 짜고나니, N, F에 대해서는 Vectorize의 가능성이 보였고, 짰고, 돌아갔다. 짜릿하더라. 뭐 요정도 일 것 같다. </p>
+
+        </div>
+
+        
+
+        <!-- 댓글부분 -->
+        <br /><br />
+        <div id="disqus_thread"></div>
+        <script>
+            /**
+            *  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+            *  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables*/
+            /*
+            var disqus_config = function () {
+            this.page.url = PAGE_URL;  // Replace PAGE_URL with your page's canonical URL variable
+            this.page.identifier = PAGE_IDENTIFIER; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+            };
+            */
+            (function() { // DON'T EDIT BELOW THIS LINE
+            var d = document, s = d.createElement('script');
+            s.src = 'https://longshiine.disqus.com/embed.js';
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+            })();
+        </script>
+        <noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+        <script id="dsq-count-scr" src="//longshiine.disqus.com/count.js" async></script>                  
+        <br /><br />
+
+        <section class="post-tags">
+            <div>
+                <!-- <span>Tag(s):</span>
+                <span class="tag">
+                    
+                    
+                        <a href="/tags/DeepLearning/"># DeepLearning</a>
+                    
+                        <a href="/tags/CNN/"># CNN</a>
+                    
+                        
+                </span> -->
+            </div>
+            <div>
+                <a href="javascript:window.history.back();">back</a>
+                <span>· </span>
+                <a href="/">home</a>
+            </div>
+        </section>
+        <section class="post-nav">
+            
+            
+            <a class="next" rel="next" href="/2020/08/27/Gradient-Vanishing%EC%9D%B4%EB%9E%80/">Gradient Vanishing이란?</a>
+            
+        </section>
+
+
+    </article>
+</div>
+
+        </div>
+        <footer id="footer" class="footer">
+    <div class="copyright">
+        <span>© Jay_Kim | Powered by <a href="https://hexo.io" target="_blank">Hexo</a> & <a href="https://github.com/Siricee/hexo-theme-Chic" target="_blank">Chic</a></span>
+    </div>
+</footer>
+
+    </div>
+</body>
+</html>
