@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="kor">
+<head>
+    <meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta name="author" content="Jay_Kim">
+
+
+    <meta name="subtitle" content="Jay's blog">
+
+
+    <meta name="description" content="blog">
+
+
+    <meta name="keywords" content="deeplearning, blog, book, life, social">
+
+
+<title>Optimal Auction Through Deep Learning(1) | Jaylog</title>
+
+
+
+    <link rel="icon" href="/favicon.ico">
+
+
+
+
+    <!-- stylesheets list from _config.yml -->
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+
+
+
+    <!-- scripts list from _config.yml -->
+    
+    <script src="/js/script.js"></script>
+    
+    <script src="/js/tocbot.min.js"></script>
+    
+
+
+
+    
+    
+        
+            <!-- MathJax配置，可通过单美元符号书写行内公式等 -->
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+    "HTML-CSS": {
+        preferredFont: "TeX",
+        availableFonts: ["STIX","TeX"],
+        linebreaks: { automatic:true },
+        EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50)
+    },
+    tex2jax: {
+        inlineMath: [ ["$", "$"], ["\\(","\\)"] ],
+        processEscapes: true,
+        ignoreClass: "tex2jax_ignore|dno",
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+    },
+    TeX: {
+        equationNumbers: { autoNumber: "AMS" },
+        noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } },
+        Macros: { href: "{}" }
+    },
+    messageStyle: "none"
+    });
+</script>
+<!-- 给MathJax元素添加has-jax class -->
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+<!-- 通过连接CDN加载MathJax的js代码 -->
+<script type="text/javascript" async
+        src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML">
+</script>
+
+
+        
+    
+
+
+<meta name="generator" content="Hexo 5.0.0"></head>
+<body>
+    <div class="wrapper">
+        <header>
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-header header-logo"><a href="/">Jay_log</a></div>
+            <div class="menu navbar-right">
+                
+                    <a class="menu-item" href="/archives">Posts</a>
+                
+                    <a class="menu-item" href="/category">Categories</a>
+                
+                    <a class="menu-item" href="/tag">Tags</a>
+                
+                    <a class="menu-item" href="/about">About</a>
+                
+                <input id="switch_default" type="checkbox" class="switch_default">
+                <label for="switch_default" class="toggleBtn"></label>
+            </div>
+        </div>
+    </nav>
+
+    
+    <nav class="navbar-mobile" id="nav-mobile">
+        <div class="container">
+            <div class="navbar-header">
+                <div>
+                    <a href="/">Jay_log</a><a id="mobile-toggle-theme">·&nbsp;Light</a>
+                </div>
+                <div class="menu-toggle" onclick="mobileBtn()">&#9776; Menu</div>
+            </div>
+            <div class="menu" id="mobile-menu">
+                
+                    <a class="menu-item" href="/archives">Posts</a>
+                
+                    <a class="menu-item" href="/category">Categories</a>
+                
+                    <a class="menu-item" href="/tag">Tags</a>
+                
+                    <a class="menu-item" href="/about">About</a>
+                
+            </div>
+        </div>
+    </nav>
+
+</header>
+<script>
+    var mobileBtn = function f() {
+        var toggleMenu = document.getElementsByClassName("menu-toggle")[0];
+        var mobileMenu = document.getElementById("mobile-menu");
+        if(toggleMenu.classList.contains("active")){
+           toggleMenu.classList.remove("active")
+            mobileMenu.classList.remove("active")
+        }else{
+            toggleMenu.classList.add("active")
+            mobileMenu.classList.add("active")
+        }
+    }
+</script>
+        <div class="main">
+            <div class="container">
+    
+    
+        <div class="post-toc">
+    <div class="tocbot-list">
+    </div>
+    <div class="tocbot-list-menu">
+        <a class="tocbot-toc-expand" onclick="expand_toc()">Expand all</a>
+        <a onclick="go_top()">Back to top</a>
+        <a onclick="go_bottom()">Go to bottom</a>
+    </div>
+</div>
+
+<script>
+    document.ready(
+        function () {
+            tocbot.init({
+                tocSelector: '.tocbot-list',
+                contentSelector: '.post-content',
+                headingSelector: 'h1, h2, h3, h4, h5',
+                collapseDepth: 1,
+                orderedList: false,
+                scrollSmooth: true,
+            })
+        }
+    )
+
+    function expand_toc() {
+        var b = document.querySelector(".tocbot-toc-expand");
+        tocbot.init({
+            tocSelector: '.tocbot-list',
+            contentSelector: '.post-content',
+            headingSelector: 'h1, h2, h3, h4, h5',
+            collapseDepth: 6,
+            orderedList: false,
+            scrollSmooth: true,
+        });
+        b.setAttribute("onclick", "collapse_toc()");
+        b.innerHTML = "Collapse all"
+    }
+
+    function collapse_toc() {
+        var b = document.querySelector(".tocbot-toc-expand");
+        tocbot.init({
+            tocSelector: '.tocbot-list',
+            contentSelector: '.post-content',
+            headingSelector: 'h1, h2, h3, h4, h5',
+            collapseDepth: 1,
+            orderedList: false,
+            scrollSmooth: true,
+        });
+        b.setAttribute("onclick", "expand_toc()");
+        b.innerHTML = "Expand all"
+    }
+
+    function go_top() {
+        window.scrollTo(0, 0);
+    }
+
+    function go_bottom() {
+        window.scrollTo(0, document.body.scrollHeight);
+    }
+
+</script>
+    
+
+    
+    <article class="post-wrap">
+        <header class="post-header">
+            <h1 class="post-title">Optimal Auction Through Deep Learning(1)</h1>
+            
+                <div class="post-meta">
+                    
+                        Author: <a itemprop="author" rel="author" href="/">Jay_Kim</a>
+                    
+
+                    
+                        <span class="post-time">
+                        Date: <a href="#">January 3, 2021&nbsp;&nbsp;17:34:28</a>
+                        </span>
+                    
+
+                    
+                        <span class="post-category">
+                    Category:
+                            
+                                <a href="/categories/DeepLearning/">DeepLearning</a>
+                            
+                        </span>
+                    
+                </div>
+            
+        </header>
+
+        <div class="post-content">
+            <blockquote>
+<p>본 포스트는 “Auction Theory” 전반과 “Optimal Auction Through Deep Learning” 논문에 대한 리뷰 포스트입니다.<br><a target="_blank" rel="noopener" href="https://arxiv.org/abs/1706.03459">https://arxiv.org/abs/1706.03459</a></p>
+</blockquote>
+<p>사실 경제학을 공부해본 적이 없기에 경매이론 자체를 다루는 데에는 한계가 있었다. 첫번째 포스트에서는 경매에 대해 간단하게 살펴보고, 경매이론이 어떤 이유로 노벨상을 수상했는지, 어떤식으로 활용이 될 수 있는지를 다뤄보고자 한다.</p>
+<h3 id="경매-난해한-수학-퍼즐"><a href="#경매-난해한-수학-퍼즐" class="headerlink" title="경매, 난해한 수학 퍼즐"></a>경매, 난해한 수학 퍼즐</h3><p>경매는 오늘날 어디서나 흔히 볼 수 있는 거래 형태다. 여기서 매입자는 특정 상품을 사들이기 위해 계속 가격을 높여가며 제시한다. 이베이(eBay)에 나온 기타, 마이해머(MyHammer) 같은 플랫폼에서 제공하는 여러 서비스, 아주 전통적인 예로 옥션 매장에서 거래되는 예술품 등은 바로 이런 방식으로 매매된다. 이렇게 일반에 잘 알려진 상행위이지만, 연구 대상으로서 경매의 세부 규칙을 다루는 순간, 경매는 대번에 고도로 복잡한 주제가 된다. 경매 규칙 연구가 얼마큼 복잡한 사안이 될 수 있는지, 미국 스탠퍼드대학 경제학과 로버트 윌슨 교수와 폴 밀그럼 교수의 예가 잘 보여준다. 경매 규칙을 총체적으로 파악한 뒤 이를 바탕으로 탁월한 경매 방식을 고안한 공적으로, 두 연구자는 2020년 노벨경제학상을 공동 수상했다.</p>
+<p>결정할 때 작용하는 여러 문제를 수학적으로 분석하는 놀이이론 분야에서, 경매는 가장 단순한 형태로 실행될지라도 분석이 특별히 어려운 주제로 꼽힌다. 경매 분석은 1996년, 1994년 각각 노벨경제학상을 받은 윌리엄 비크리와 존 허샤니의 논문을 통해, 1960년대에 경제이론의 한 부분으로 정립됐다. 두 학자의 연구를 발전시키면서, 로버트 윌슨과 그의 제자인 폴 밀그럼은 학계에 깊은 인상을 남긴 영향력 있는 이론을 연이어 발표했다. 이 논문들은 여러 경제 분야에서 경매가 각각 어떤 식으로 형성되는지 파악하는 중요한 토대를 마련해놓고 있다. 경매 과정에서 보이는 입찰자 행동을 이해하게 해주는 이 연구는 다양한 경매 규칙을 새롭게 평가하는 토대도 마련해준다. 밀그럼과 윌슨의 연구는 오늘날 더욱 중요한 의미를 갖는다. 날로 디지털화하는 요즘, 경제활동 전역에서 경매 방식이 갈수록 더 복잡해지고 있기 때문이다. 무선 이동통신망 경매나 어업수역 경매, 온라인경매, 에너지시장 경매, 산업 분야 공급업체 경매는 전체 경매 방식의 일부에 불과하다.</p>
+<h3 id="주파수-경매"><a href="#주파수-경매" class="headerlink" title="주파수 경매"></a>주파수 경매</h3><p>일반의 경매에 관한 관심이 고조된 때는 1990년대였다. 당시 세계 어느 정부를 막론하고 자국 재량권 내에 있는 무선 광대역통신망을 경매로 분배할 방법을 모색하고 있었다.이동통신사에는 수십억원대 장사를 할 가능성이 코앞에 다가온 셈이었다. 국가로서도 막대한 세금을 벌어들일 기회였다. 동시에 경매를 통하면 국가는 광대역통신망을 관리할 최상의 기업을 선택하는 이점이 있었다. 사업모델이 우수하면 허가를 얻기 위해 입찰자가 제시하는 기준도 그만큼 더 높을 것이다. 이뿐만이 아니다. 마지막에 한 기업이 통신망 모두를 독점하는 상황을 초래하지 않으려면 국가보조금을 여러 기업에 나눠 지급해야 하는데, 이 또한 경매로 이루겠다는 게 정부 계획이었다. 물론 광대역통신망의 모든 주파수를 임의로 다 조합할 수 없다는 기술적 제한이 있지만 말이다.</p>
+<p>통신사 선정은 매우 복합적인 문제였다. 어떤 규칙을 써야 최선의 입찰자가 낙찰받게 할 수 있을지, 선정 기업에 기술상 실행 가능한 주파수를 조합해서 주고 동시에 국고에도 최고 수익이 돌아오게 할 방법이 무엇인지를 알아내야 했다. 경매이론가 가운데 밀그럼과 윌슨은 각국 정부의 상담역을 맡아 정교한 규칙을 개발한 학자로 꼽힌다. 다른 학자들은 주로 기업을 상담하면서 입찰에서 최고의 결과를 얻는 전략을 개발하는 역할을 맡았다. 밀그럼과 윌슨은 오래전부터 그들의 경매 규칙을 뒷받침할 이론적 토대를 탄탄히 마련해놓았다.<br>경매에서 개별 입찰자가 일부 동일한 기초 자료에 의존해서 입찰가를 결정한다는 사실을 밝혀내 경매 이해도를 높인 것은 두 연구자의 중요한 업적으로 평가된다. 결과적으로, 입찰 대상에 대해 한 입찰자가 좋은 평가를 하면 다른 입찰자의 평가도 좋게 나올 확률이 높다는 뜻이다. 따라서 매도자의 과제는 입찰자 가운데 최상의 사업모델, 혹은 저렴한 비용으로 이윤을 가장 많이 남길 수 있는 지원자가 누구일지 심사하는 것이다. 논리적으로 생각하면, 이 입찰자가 가장 높은 입찰가를 제시할 것이다.</p>
+<p>여기에서 다음 같은 이의가 제기될 수도 있다. 최고 입찰가를 부른 매입자가 가장 뛰어난 사업모델을 가졌기 때문이 아니라, 단지 사업권의 가치를 과대평가했기 때문일 수도 있지 않은가. 이 경우 사업권을 따낸 회사는 비록 입찰에는 성공했지만 결국 지나치게 많은 금액을 냈음을 깨닫는다. 경매이론에선 이 경우를 ‘승자의 저주’라고 일컫는다.그러나 이성적인 입찰자는 이런 함정에 빠지지 않는다는 게 밀그럼과 윌슨의 시각이다. 경매장에서의 성공을 나중에 후회하는 일을 피하기 위해 입찰자들은 처음부터 나름 정해놓은 금액을 염두에 두고 경매에 나선다는 사실을, 두 학자는 분명히 보여줬다. 공개 경매 방식이 유리한 이유가 바로 이 때문이다. 경쟁자가 한 명씩 입찰을 포기할 때마다, 입찰자는 자기가 매입하려는 사업권을 다른 사람들이 어떻게 평가하는지 조금씩 더 알아간다. 이 추가 정보를 바탕으로 경우에 따라 대담하게 입찰 가격을 제시할 수도 있다.</p>
+<h3 id="동시-다중-라운드-경매-방식-개발"><a href="#동시-다중-라운드-경매-방식-개발" class="headerlink" title="동시 다중 라운드 경매 방식 개발"></a>동시 다중 라운드 경매 방식 개발</h3><p>단일 사업권을 공개 경매하는 것으로는 이 효과를 거둘 수 없다. 고객에게 매력적인 상품을 제공하기 위해 이동통신사에 전체 사업권 목록이 필요할 때가 자주 있다. 이 경우, 예를 들어 여러 지역을 함께 아우르는 사업권을 제공하는 것이 유리하다. 이외엔 어떤 사업권이 더 경매에 부쳐지는지 분명하지 않은 상황에선 개별 사업권의 가치를 측정하기 어렵다. 이 상황에선 다수 사업권의 동시 경매가 필요하다.</p>
+<p>이 연구를 바탕으로, 밀그럼과 윌슨은 새로운 경매 방식을 개발했다. 공개 입찰 과정에서 여러 지방의 주파수 광대역 입찰을 동시에 여러 라운드를 걸쳐 진행하는 것이다. 이른바 ‘동시 다중 라운드 경매’(Simultaneous Multiple Round Auction)다. 이 방식을 사용하면 입찰자들이 개별적으로 보유한 정보가 정교하게 계산된 규칙에 따라 경매가 진행되는 과정에서 점차 하나로 모인다. 그 결과, 입찰자들이 원치 않는 형태로 조합된 사업권을 받아들거나 승자의 저주에 걸릴 위험이 줄어든다. 그렇게 되면 예상 경매 수익이 높아져서 경매자에게도 혜택이 돌아간다.</p>
+<p>폴 밀그럼과 로버트 윌슨 교수의 이 아이디어는 전세계 주파수 광대역 경매 형태에 큰 영향을 주었다. 무엇보다 중요한 공적은 삶의 모든 영역에서 일어나는 무수한 경매에 적용되는 기초를 놓았다는 것이다. 2020년 노벨상 이야기는 기초연구 분야의 수학 모델이 지닌 우아함과 그 모델을 실생활에 적용하는 일이 경제학에서 서로 얼마나 가까이 접근할 수 있는지 인상적으로 보여준다.</p>
+
+        </div>
+
+        
+
+        <!-- 댓글부분 -->
+        <br /><br />
+        <div id="disqus_thread"></div>
+        <script>
+            /**
+            *  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+            *  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables*/
+            /*
+            var disqus_config = function () {
+            this.page.url = PAGE_URL;  // Replace PAGE_URL with your page's canonical URL variable
+            this.page.identifier = PAGE_IDENTIFIER; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+            };
+            */
+            (function() { // DON'T EDIT BELOW THIS LINE
+            var d = document, s = d.createElement('script');
+            s.src = 'https://longshiine.disqus.com/embed.js';
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+            })();
+        </script>
+        <noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+        <script id="dsq-count-scr" src="//longshiine.disqus.com/count.js" async></script>                  
+        <br /><br />
+
+        <section class="post-tags">
+            <div>
+                <!-- <span>Tag(s):</span>
+                <span class="tag">
+                    
+                    
+                        <a href="/tags/DeepLearning/"># DeepLearning</a>
+                    
+                        <a href="/tags/OptimalAuction/"># OptimalAuction</a>
+                    
+                        
+                </span> -->
+            </div>
+            <div>
+                <a href="javascript:window.history.back();">back</a>
+                <span>· </span>
+                <a href="/">home</a>
+            </div>
+        </section>
+        <section class="post-nav">
+            
+                <a class="prev" rel="prev" href="/2021/01/03/Optimal-Auction-Through-Deep-Learning-1/">Optimal Auction Through Deep Learning(1)</a>
+            
+            
+            <a class="next" rel="next" href="/2020/09/04/Dot-Product-%EC%A0%95%EB%A6%AC/">Dot Product 정리</a>
+            
+        </section>
+
+
+    </article>
+</div>
+
+        </div>
+        <footer id="footer" class="footer">
+    <div class="copyright">
+        <span>© Jay_Kim | Powered by <a href="https://hexo.io" target="_blank">Hexo</a> & <a href="https://github.com/Siricee/hexo-theme-Chic" target="_blank">Chic</a></span>
+    </div>
+</footer>
+
+    </div>
+</body>
+</html>
