@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="kor">
+<head>
+    <meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta name="author" content="Jay_Kim">
+
+
+    <meta name="subtitle" content="Jay's blog">
+
+
+    <meta name="description" content="blog">
+
+
+    <meta name="keywords" content="deeplearning, blog, book, life, social">
+
+
+<title>강화학습 개요 | Jaylog</title>
+
+
+
+    <link rel="icon" href="/favicon.ico">
+
+
+
+
+    <!-- stylesheets list from _config.yml -->
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+
+
+
+    <!-- scripts list from _config.yml -->
+    
+    <script src="/js/script.js"></script>
+    
+    <script src="/js/tocbot.min.js"></script>
+    
+
+
+
+    
+    
+        
+    
+
+
+<meta name="generator" content="Hexo 5.0.0"></head>
+<body>
+    <div class="wrapper">
+        <header>
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-header header-logo"><a href="/">Jay_log</a></div>
+            <div class="menu navbar-right">
+                
+                    <a class="menu-item" href="/archives">Posts</a>
+                
+                    <a class="menu-item" href="/category">Categories</a>
+                
+                    <a class="menu-item" href="/tag">Tags</a>
+                
+                    <a class="menu-item" href="/about">About</a>
+                
+                <input id="switch_default" type="checkbox" class="switch_default">
+                <label for="switch_default" class="toggleBtn"></label>
+            </div>
+        </div>
+    </nav>
+
+    
+    <nav class="navbar-mobile" id="nav-mobile">
+        <div class="container">
+            <div class="navbar-header">
+                <div>
+                    <a href="/">Jay_log</a><a id="mobile-toggle-theme">·&nbsp;Light</a>
+                </div>
+                <div class="menu-toggle" onclick="mobileBtn()">&#9776; Menu</div>
+            </div>
+            <div class="menu" id="mobile-menu">
+                
+                    <a class="menu-item" href="/archives">Posts</a>
+                
+                    <a class="menu-item" href="/category">Categories</a>
+                
+                    <a class="menu-item" href="/tag">Tags</a>
+                
+                    <a class="menu-item" href="/about">About</a>
+                
+            </div>
+        </div>
+    </nav>
+
+</header>
+<script>
+    var mobileBtn = function f() {
+        var toggleMenu = document.getElementsByClassName("menu-toggle")[0];
+        var mobileMenu = document.getElementById("mobile-menu");
+        if(toggleMenu.classList.contains("active")){
+           toggleMenu.classList.remove("active")
+            mobileMenu.classList.remove("active")
+        }else{
+            toggleMenu.classList.add("active")
+            mobileMenu.classList.add("active")
+        }
+    }
+</script>
+        <div class="main">
+            <div class="container">
+    
+    
+        <div class="post-toc">
+    <div class="tocbot-list">
+    </div>
+    <div class="tocbot-list-menu">
+        <a class="tocbot-toc-expand" onclick="expand_toc()">Expand all</a>
+        <a onclick="go_top()">Back to top</a>
+        <a onclick="go_bottom()">Go to bottom</a>
+    </div>
+</div>
+
+<script>
+    document.ready(
+        function () {
+            tocbot.init({
+                tocSelector: '.tocbot-list',
+                contentSelector: '.post-content',
+                headingSelector: 'h1, h2, h3, h4, h5',
+                collapseDepth: 1,
+                orderedList: false,
+                scrollSmooth: true,
+            })
+        }
+    )
+
+    function expand_toc() {
+        var b = document.querySelector(".tocbot-toc-expand");
+        tocbot.init({
+            tocSelector: '.tocbot-list',
+            contentSelector: '.post-content',
+            headingSelector: 'h1, h2, h3, h4, h5',
+            collapseDepth: 6,
+            orderedList: false,
+            scrollSmooth: true,
+        });
+        b.setAttribute("onclick", "collapse_toc()");
+        b.innerHTML = "Collapse all"
+    }
+
+    function collapse_toc() {
+        var b = document.querySelector(".tocbot-toc-expand");
+        tocbot.init({
+            tocSelector: '.tocbot-list',
+            contentSelector: '.post-content',
+            headingSelector: 'h1, h2, h3, h4, h5',
+            collapseDepth: 1,
+            orderedList: false,
+            scrollSmooth: true,
+        });
+        b.setAttribute("onclick", "expand_toc()");
+        b.innerHTML = "Expand all"
+    }
+
+    function go_top() {
+        window.scrollTo(0, 0);
+    }
+
+    function go_bottom() {
+        window.scrollTo(0, document.body.scrollHeight);
+    }
+
+</script>
+    
+
+    
+    <article class="post-wrap">
+        <header class="post-header">
+            <h1 class="post-title">강화학습 개요</h1>
+            
+                <div class="post-meta">
+                    
+                        Author: <a itemprop="author" rel="author" href="/">Jay_Kim</a>
+                    
+
+                    
+                        <span class="post-time">
+                        Date: <a href="#">January 19, 2021&nbsp;&nbsp;16:09:49</a>
+                        </span>
+                    
+
+                    
+                        <span class="post-category">
+                    Category:
+                            
+                                <a href="/categories/ReinforcementLearning/">ReinforcementLearning</a>
+                            
+                        </span>
+                    
+                </div>
+            
+        </header>
+
+        <div class="post-content">
+            <blockquote>
+<p>본 포스트는 “파이썬과 케라스로 배우는 강화학습” 도서의 리뷰 포스트입니다.<br><a target="_blank" rel="noopener" href="http://www.yes24.com/Product/Goods/44136413">http://www.yes24.com/Product/Goods/44136413</a></p>
+</blockquote>
+<p><strong>방학이 어느새 1달여가 다 되어가는 시점이다..</strong> 😥</p>
+<p>1달간의 잉여생활을 청산하기 위해, 서점에 들러 강화학습 도서를 집었다. 원래는 CS234를 도전해보려 했으나, 미약한 영어실력 및 충전된 잉여력으로 인해 1강을 채 못 끝내었다는 불편한 진실..을 뒤로 하고, 코드와 함께 있는 이 도서를 정독해보기로 마음먹었다. 아무래도 나는 코드가 없으면 재미를 못느끼는 타입인가 보다. 암튼암튼. 이 책 만큼은 끝까지 도달하기를 진심진심으로 바란다. (교보문고에서 무려 2만 8천원을 고대로 내고 사왔다!)</p>
+<h2 id="1장-강화학습-개요"><a href="#1장-강화학습-개요" class="headerlink" title="1장. 강화학습 개요"></a>1장. 강화학습 개요</h2><hr>
+<p>이 책의 목표는 다음과 같다.</p>
+<ul>
+<li>최소한의 수식과 직관적인 그림을 통해 강화학습을 이해하는 것</li>
+<li>간단한 게임에 강화학습 이론을 직접 구현해보는 것</li>
+</ul>
+<p>행동심리학과 머신러닝에 뿌리를 둔 강화학습에 대해 공부하려면 강화학습이 풀려고 하는 문제에 대해 정의를 먼저 해야한다. 강화학습은 다른 머신러닝 분야와 다르게 <strong>순차적으로 행동을 결정해야 하는 문제</strong>를 다루며 이러한 문제를 컴퓨터가 풀기 위해서는 문제를 수학적으로 잘 정의해야 한다.</p>
+<h3 id="스키너의-강화-연구"><a href="#스키너의-강화-연구" class="headerlink" title="스키너의 강화 연구"></a>스키너의 강화 연구</h3><p>강화(Reinforcement)는 동물이 시행착오(Trial and Error)를 통해 학습하는 방법 중 하나이고, 행동심리학의 시행착오 학습이라는 개념은 동물들이 이것저것 시도해보면서 그 결과를 통해 학습하는 것을 말한다.</p>
+<ol>
+<li>굶긴 쥐를 상자에 넣는다.</li>
+<li>쥐는 돌아다니다가 우연히 상자 안에 있는 지렛대를 누르게 된다.</li>
+<li>지렛대를 누르자 먹이가 나온다.</li>
+<li>지렛대를 누르는 행동과 먹이와의 상관관계를 모르는 쥐는 다시 돌아다닌다.</li>
+<li>그러다가 우연히 쥐가 다시 지렛대를 누르면 쥐는 이제 먹이와 지렛대 사이의 관계를 알게 되고 점점 지렛대를 자주 누르게 된다.</li>
+<li>이 과정을 반복하면서 쥐는 지렛대를 누르면 먹이를 먹을 수 있다는 것을 학습한다.</li>
+</ol>
+<p>즉, 강화라는 것은 동물이 이전에 배우지 않았지만 직접 시도하면서 행동과 그 결과로 나타나는 좋은 보상사이의 상관관계를 학습하는 것이다</p>
+<h3 id="머신러닝과-강화학습"><a href="#머신러닝과-강화학습" class="headerlink" title="머신러닝과 강화학습"></a>머신러닝과 강화학습</h3><p>강화학습을 정의하려면 행동심리학의 강화라는 개념 이외에 머신러닝을 알아야 하는데 머신러닝은 다음과 같이 크게 세 가지로 나뉜다.</p>
+<div class="image-box">
+                <img src="/image/post_image/20210119/learning.png" style="width:300px; height:220px" alt="머신러닝 종류" title="" class="">
+                <p class="image-box-title">머신러닝 종류</p>
+            </div>
+
+<ul>
+<li><code>지도학습(Supervised Learning)</code>: 회귀분석(Regression), 분류(Classification)</li>
+<li><code>비지도학습(Unsupervised Learning)</code>: 군집화(Clustering)</li>
+<li><code>강화학습(Reinforcement Learning)</code></li>
+</ul>
+<p>강화학습은 지도학습, 비지도학습과 그 성격이다르다. 정답이 주어진 것은 아니지만 그저 주어진 데이터에 대해 학습하는 것도 아니기 때문이다. 강화학습은 <strong>보상(reward)</strong> 을 통해 학습한다. 보상은 컴퓨터가 선택한 <strong>행동(Action)</strong> 에 대한 환경의 반응이다. 이 보상은 직접적인 답은 아니지만 컴퓨터에게는 간접적인 정답의 역할을 한다.</p>
+<p>강화학습을 수행하는 컴퓨터는 행동심리학에서 살펴본 강화처럼 보상을 얻게 하는 행동을 점점 많이 하도록 학습한다.</p>
+<h3 id="스스로-학습하는-컴퓨터-에이전트"><a href="#스스로-학습하는-컴퓨터-에이전트" class="headerlink" title="스스로 학습하는 컴퓨터, 에이전트"></a>스스로 학습하는 컴퓨터, 에이전트</h3><p>앞으로 강화학습을 통해 스스로 학습하는 컴퓨터를 <code>에이전트(Agent)</code>라고 할 것이다. 에이전트는 환경에 대해 사전지식이 없는 상태에서 학습을 한다. 에이전트는 자신이 놓인 환경에서 자신의 상태를 인식한 후 행동한다. 그러면 환경은 에이전트에게 보상을 주고 다음 상태를 알려준다(아래의 그림처럼 말이다!). 에이전트는 자신의 행동과 행동의 결과를 보상을 통해 학습하면서 어떤 행동을 해야 좋은 결과를 얻게 되는지 알게 된다.</p>
+<div class="image-box">
+                <img src="/image/post_image/20210119/agent.png" style="Agent" alt="" title="" class="">
+                <p class="image-box-title"></p>
+            </div>
+
+
+<p>강화학습의 목적은 에이전트가 환경을 탐색하면서 얻는 보상들의 합을 최대화하는 <code>최적의 행동양식, 또는 정책</code>을 학습하는 것이다.</p>
+<h3 id="강화학습의-장점"><a href="#강화학습의-장점" class="headerlink" title="강화학습의 장점"></a>강화학습의 장점</h3><p>이러한 강화학습의 장점은 무엇일까? </p>
+<blockquote>
+<p><strong>“환경에 대한 사전지식이 없어도 학습한다는 것”</strong></p>
+</blockquote>
+<p> 실제 세상에서 에이전트가 어떠한 기능을 학습하려면 다양한 상황에 대한 정보가 있어야 한다. 이러한 정보 없이 에이전트는 시행착오를 통해 어떠한 기능을 학습한다. 알파고에 대해 강화학습 관점에서 생각해보면, 알파고 또한 바둑이라는 게임의 규칙과 사전지식이 없는 상태에서 바둑을 두면서 학습한 것이다. 처음에는 무작위로 바둑돌을 놓다가 어쩌다가 상대방을 이기기 된다. 그러면 에이전트는 보상을 받고 상대방을 이기게 한 행동을 더 하려고 한다(실제로 알파고는 바둑을 학습할 때 사람이 둔 기보를 통해 지도학습을 하는 단계도 있지만 이 책에서는 해당 내용을 생략한다)</p>
+<h3 id="순차적-행동-결정-문제"><a href="#순차적-행동-결정-문제" class="headerlink" title="순차적 행동 결정 문제"></a>순차적 행동 결정 문제</h3><p>강화학습은 마치 사람처럼 환경과 상호작용하면서 스스로 학습하는 방식이다. 하지만 다른 머신러닝과 마찬가지로 강화학습은 문제 자체에 대해 잘 이해하지 않으면 엉뚱한 결과를 낳는다. 강화학습은 어떤 문제에 적용할까?</p>
+<blockquote>
+<p><strong>“강화학습은 결정을 순차적으로 내려야 하는 문제에 적용된다”</strong></p>
+</blockquote>
+<p>결정을 순차적으로 내려야하는 문제라는 것은 예를 들어 현재 위치에서 행동을 한번 선택하는 것이 아니라 계속적으로 선택해야 하는 아래의 게임 같은 것이다.</p>
+<div class="image-box">
+                <img src="/image/post_image/20210119/game.png" style="width:400px; height:350px" alt="순차적으로 행동을 결정해야 하는 문제" title="" class="">
+                <p class="image-box-title">순차적으로 행동을 결정해야 하는 문제</p>
+            </div>
+
+<p>에이전트가 문제에 대하여 학습하고 발전하려면 <strong>문제를 수학적으로 표현</strong> 해야한다. 순차적으로 행동을 결정하는 문제를 정의할 때 사용하는 방법이 <code>MDP(Markov Decision Process)</code>이다. MDP는 순차적 행동 결정문제를 수학적으로 정의해서 에이전트가 순차적 행동 결정 문제에 접근할 수 있게 한다.</p>
+<h3 id="순차적-행동-결정-문제의-구성요소"><a href="#순차적-행동-결정-문제의-구성요소" class="headerlink" title="순차적 행동 결정 문제의 구성요소"></a>순차적 행동 결정 문제의 구성요소</h3><p>수학적으로 정의된 문제는 다음과 같은 구성요소를 가진다. 이 구성 요소들을 MDP라 부르며 2장에서 자세히 다룬다.</p>
+<h4 id="상태-state"><a href="#상태-state" class="headerlink" title="상태(state)"></a>상태(state)</h4><hr>
+<p>에이전트의 상태를 뜻하는데 이러한 상태에는 정적인 요소 뿐만아니라 에이전트가 움직이는 속도와 같은 동적인 요소 또한 포함된다. 가령 탁구를 치는 에이전트를 가정하면 탁구공의 위치, 속도, 가속도 같은 정보가 상태로 주어져야 한다.</p>
+<h4 id="행동-action"><a href="#행동-action" class="headerlink" title="행동(action)"></a>행동(action)</h4><hr>
+<p>에이전트가 어떠한 상태에서 취할 수 있는 행동으로서 “상”,”하”,”좌”,”우”와 같은 것을 말한다. 게임에서의 행동이라면 게임기를 통해 줄 수 있는 입력일 것이다. 학습이 되지 않은 에이전트는 어떤 행동이 좋은 행동인지에 대한 정보가 전혀 없다. 하지만 에이전트는 학습하면서 특정한 행동들을 할 확률을 높인다. 에이전트가 행동을 취하면 환경은 에이전트에게 보상을 주고 다음 상태를 알려준다.</p>
+<h4 id="보상-reward"><a href="#보상-reward" class="headerlink" title="보상(reward)"></a>보상(reward)</h4><hr>
+<p>보상은 강화학습을 다른 머신러닝 기법과 다르게 만들어주는 가장 핵심적인 요소이다. 사실상 에이전트가 학습할 수 있는 유일한 정보가 바로 보상이다. 앞서 언급했듯 강화학습의 목표는 시간에 따라 얻는 보상들의 합을 최대로 하는 정책을 찾는 것이다. 보상은 에이전트에 속하지 않는 환경의 일부이며, 에이전트는 어떤 상황에서 얼마의 보상이 나오는지에 대해 미리 알지 못한다.</p>
+<h4 id="정책-policy"><a href="#정책-policy" class="headerlink" title="정책(policy)"></a>정책(policy)</h4><hr>
+<p>순차적 행동 결정 문제에서 구해야할 답은 바로 <code>정책</code>이다. 에이전트가 보상을 얻으려면 행동을 해야 하는데 특정 상태가 아닌 모든 상태에 대해 어떤 행동을 해야 할지 알아야 한다. 이렇게 모든 상태에 대해 에이전트가 어떤 행동을 해야하는지 정해놓은 것이 정책이다.</p>
+<p>순차적 행동 결정 문제를 풀었다고 한다면 제일 좋은 정책을 에이전트가 얻었다는 것이다. 제일 좋은 정책은 <code>최적정책(optimal policy)</code>이라고 하며 에이전트는 최적 정책에 따라 행동했을 때 보상의 합을 최대로 받을 수 있다.</p>
+<h3 id="강화학습의-예시-브레이크-아웃"><a href="#강화학습의-예시-브레이크-아웃" class="headerlink" title="강화학습의 예시: 브레이크 아웃"></a>강화학습의 예시: 브레이크 아웃</h3><p>이 책에서는 강화학습을 통해 몇가지 간단한 게임을 학습해본다. 그중에서 마지막 게임인 “브레이크 아웃” 즉, 벽돌깨기에 강화학습을 어떤 식으로 적용하는지 알아보자.</p>
+<div class="image-box">
+                <img src="/image/post_image/20210119/breakout.jpg" style="width:200px; height:300px" alt="break out" title="" class="">
+                <p class="image-box-title">break out</p>
+            </div>
+
+<p><strong>벽돌깨기에 강화학습을 적용하려면 어떻게 해야할까?</strong><br>이 말은 곧 <strong>벽돌깨기의 MDP를 어떻게 구성해야 할까?</strong> 라는 질문과도 같다. 또한 에이전트는 어떻게 학습을 해야할지에 대해서도 생각을 해보아야 한다.</p>
+<ol>
+<li>MDP</li>
+</ol>
+<ul>
+<li><code>상태</code>: 게임화면, 위의 그림과 같은 4개의 화면이 상태로 에이전트에게 제공되며, 이때 화면은 흑백화면이기 때문에 2차원 픽셀 데이터이다.</li>
+<li><code>행동</code>: 제자리, 왼쪽 오른쪽, 발사가 가능하고 발사는 시작 때에만 가능하다.</li>
+<li><code>보상</code>: 벽돌이 하나씩 깨질 때마다 보상을 (+1)씩 받고 더 위쪽을 깰수록 더 큰 보상을 받는다. 아무것도 깨지 않을 때는 보상으로 (0)을 바고, 공을 놓쳐 목숨을 잃는다면 (-1)을 받는다.</li>
+</ul>
+<ol start="2">
+<li>학습</li>
+</ol>
+<ul>
+<li>에이전트는 4개의 연속된 게임 화면을 입력으로 받는다.</li>
+<li>처음에는 아무것도 모르므로 임의로 행동을 취한다.</li>
+<li>그에 따라 보상을 받게 되면 그 보상을 통해 학습한다.</li>
+<li>결국 사람처럼 혹은 사람보다 잘하게 된다.</li>
+</ul>
+<div class="image-box">
+                <img src="/image/post_image/20210119/DQN.png" style="width:500px; height:200px" alt="DQN" title="" class="">
+                <p class="image-box-title">DQN</p>
+            </div>
+
+<p>강화학습을 통해 학습되는 것은 <strong>인공신경망이다</strong>(인공신경망에 대해서는 5장에서 다뤄진다.) 인공신경망의 입력으로 위의 그림과 같은 4개의 연속적인 게임 화면이 들어온다. 인공신경망으로 입력이 들어오면 그 상태에서 에이전트가 할 수 있는 행동이 얼마나 좋은지 출력으로 내놓는다. 행동이 얼마나 좋은지가 행동의 가치가 되고 이것을 <code>큐함수(Q Function)</code>라고 한다.</p>
+<p>이 문제에 사용한 인공신경망을 <code>DQN(Deep Q-Network)</code>라고 하는데 DQN에 상태가 입력으로 들어오면 DQN은 그 상태에서 제자리, 왼쪽, 오른쪽 행동의 큐함수를 출력으로 내놓는다. 에이전트는 출력으로 나오는 큐함수에 따라서 행동한다. 즉, DQN이 출력한 큐함수를 보고 큰가치를 지니는 행동을 선택하는 것이다. 에이전트가 그행동을 취하면 환경은 에이전트에게 보상과 다음 상태를 알려준다. 에이전트는 환경과 상호작용하면서 DQN을 더 많은 보상을 받도록 조금씩 조정한다.</p>
+<p>에이전트는 이와 같은 방식으로 벽돌깨기를 학습하는데, 이 예제에 대한 자세한 이론과 코드는 뒤에서 다루어진다. 여기서는 어떤 흐름으로 에이전트가 강화학습을 통해 학습하는 지를 아는 것이 목적이다.</p>
+<h3 id="사람과-강화학습-에이전트의-차이"><a href="#사람과-강화학습-에이전트의-차이" class="headerlink" title="사람과 강화학습 에이전트의 차이"></a>사람과 강화학습 에이전트의 차이</h3><p>에이전트가 강화학습을 통해 벽돌깨기를 학습하는 것은 사람의 학습 과정과 비슷한 면이 있다. 비슷한 점은 사람이 게임 화면을 보고 학습해 나가듯이 에이전트 또한 화면을 보고 학습한다는 점이다.</p>
+<p>하지만 사람과 다른 점 또한 있다. 그것은 에이전트는 게임의 규칙을 전혀 모른다는 것이다. 아마도 처음 벽돌깨기를 하는 사람이 있다면 게임을 시작하기 이전에 먼저 규칙이 무엇인지를 찾아본 뒤, 의도를 가지고 점수를 올려나갈 것이다. 어떻게 보면 게임의 규칙을 몰라도 학습할 수 있다는 것은 강화학습의 장점이면서도 초반의 느린 학습의 원인이기도 하다.</p>
+<p>잘하는 친구가 옆에서 가르쳐준다면 더 빠르게 배울 수 있지 않을까? 사람은 하나를 학습하면 다른곳에도 그 학습이 영향을 미친다. 예를 들어, 어떤학생이 수학을 배웠다면 과학을 배우기에도 더 수월한 것 처럼. 하지만 현재 강화학습 에이전트는 각 학습을 다 별개로 취급해서 항상 바닥부터 학습해야 한다.</p>
+<p>이렇게 간단히 살펴본 사람과 강화학습 에이전트의 차이는 현재 및 미래 강화학습 분야의 연구 분야로서 지속적으로 해결해야 할 과제이다.</p>
+<h3 id="1장-한줄평"><a href="#1장-한줄평" class="headerlink" title="1장 한줄평"></a>1장 한줄평</h3><blockquote>
+<p>블로그 포스팅 너무 빡세다.. 연습 필요..</p>
+</blockquote>
+
+        </div>
+
+        
+
+        <!-- 댓글부분 -->
+        <br /><br />
+        <div id="disqus_thread"></div>
+        <script>
+            /**
+            *  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+            *  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables*/
+            /*
+            var disqus_config = function () {
+            this.page.url = PAGE_URL;  // Replace PAGE_URL with your page's canonical URL variable
+            this.page.identifier = PAGE_IDENTIFIER; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+            };
+            */
+            (function() { // DON'T EDIT BELOW THIS LINE
+            var d = document, s = d.createElement('script');
+            s.src = 'https://longshiine.disqus.com/embed.js';
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+            })();
+        </script>
+        <noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+        <script id="dsq-count-scr" src="//longshiine.disqus.com/count.js" async></script>                  
+        <br /><br />
+
+        <section class="post-tags">
+            <div>
+                <!-- <span>Tag(s):</span>
+                <span class="tag">
+                    
+                    
+                        <a href="/tags/DeepLearning/"># DeepLearning</a>
+                    
+                        <a href="/tags/ReinforcementLearning/"># ReinforcementLearning</a>
+                    
+                        
+                </span> -->
+            </div>
+            <div>
+                <a href="javascript:window.history.back();">back</a>
+                <span>· </span>
+                <a href="/">home</a>
+            </div>
+        </section>
+        <section class="post-nav">
+            
+            
+            <a class="next" rel="next" href="/2021/01/03/Optimal-Auction-Through-Deep-Learning-1%20copy/">Optimal Auction Through Deep Learning(1)</a>
+            
+        </section>
+
+
+    </article>
+</div>
+
+        </div>
+        <footer id="footer" class="footer">
+    <div class="copyright">
+        <span>© Jay_Kim | Powered by <a href="https://hexo.io" target="_blank">Hexo</a> & <a href="https://github.com/Siricee/hexo-theme-Chic" target="_blank">Chic</a></span>
+    </div>
+</footer>
+
+    </div>
+</body>
+</html>
