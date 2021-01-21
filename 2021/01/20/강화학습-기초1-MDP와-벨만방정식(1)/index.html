@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="kor">
+<head>
+    <meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta name="author" content="Jay_Kim">
+
+
+    <meta name="subtitle" content="Jay's blog">
+
+
+    <meta name="description" content="blog">
+
+
+    <meta name="keywords" content="deeplearning, blog, book, life, social">
+
+
+<title>강화학습 기초1: MDP와 벨만방정식(1) | Jaylog</title>
+
+
+
+    <link rel="icon" href="/favicon.ico">
+
+
+
+
+    <!-- stylesheets list from _config.yml -->
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+
+
+
+    <!-- scripts list from _config.yml -->
+    
+    <script src="/js/script.js"></script>
+    
+    <script src="/js/tocbot.min.js"></script>
+    
+
+
+
+    
+    
+        
+            <!-- MathJax配置，可通过单美元符号书写行内公式等 -->
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+    "HTML-CSS": {
+        preferredFont: "TeX",
+        availableFonts: ["STIX","TeX"],
+        linebreaks: { automatic:true },
+        EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50)
+    },
+    tex2jax: {
+        inlineMath: [ ["$", "$"], ["\\(","\\)"] ],
+        processEscapes: true,
+        ignoreClass: "tex2jax_ignore|dno",
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+    },
+    TeX: {
+        equationNumbers: { autoNumber: "AMS" },
+        noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } },
+        Macros: { href: "{}" }
+    },
+    messageStyle: "none"
+    });
+</script>
+<!-- 给MathJax元素添加has-jax class -->
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+<!-- 通过连接CDN加载MathJax的js代码 -->
+<script type="text/javascript" async
+        src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML">
+</script>
+
+
+        
+    
+
+
+<meta name="generator" content="Hexo 5.0.0"></head>
+<body>
+    <div class="wrapper">
+        <header>
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-header header-logo"><a href="/">Jay_log</a></div>
+            <div class="menu navbar-right">
+                
+                    <a class="menu-item" href="/archives">Posts</a>
+                
+                    <a class="menu-item" href="/category">Categories</a>
+                
+                    <a class="menu-item" href="/tag">Tags</a>
+                
+                    <a class="menu-item" href="/about">About</a>
+                
+                <input id="switch_default" type="checkbox" class="switch_default">
+                <label for="switch_default" class="toggleBtn"></label>
+            </div>
+        </div>
+    </nav>
+
+    
+    <nav class="navbar-mobile" id="nav-mobile">
+        <div class="container">
+            <div class="navbar-header">
+                <div>
+                    <a href="/">Jay_log</a><a id="mobile-toggle-theme">·&nbsp;Light</a>
+                </div>
+                <div class="menu-toggle" onclick="mobileBtn()">&#9776; Menu</div>
+            </div>
+            <div class="menu" id="mobile-menu">
+                
+                    <a class="menu-item" href="/archives">Posts</a>
+                
+                    <a class="menu-item" href="/category">Categories</a>
+                
+                    <a class="menu-item" href="/tag">Tags</a>
+                
+                    <a class="menu-item" href="/about">About</a>
+                
+            </div>
+        </div>
+    </nav>
+
+</header>
+<script>
+    var mobileBtn = function f() {
+        var toggleMenu = document.getElementsByClassName("menu-toggle")[0];
+        var mobileMenu = document.getElementById("mobile-menu");
+        if(toggleMenu.classList.contains("active")){
+           toggleMenu.classList.remove("active")
+            mobileMenu.classList.remove("active")
+        }else{
+            toggleMenu.classList.add("active")
+            mobileMenu.classList.add("active")
+        }
+    }
+</script>
+        <div class="main">
+            <div class="container">
+    
+    
+        <div class="post-toc">
+    <div class="tocbot-list">
+    </div>
+    <div class="tocbot-list-menu">
+        <a class="tocbot-toc-expand" onclick="expand_toc()">Expand all</a>
+        <a onclick="go_top()">Back to top</a>
+        <a onclick="go_bottom()">Go to bottom</a>
+    </div>
+</div>
+
+<script>
+    document.ready(
+        function () {
+            tocbot.init({
+                tocSelector: '.tocbot-list',
+                contentSelector: '.post-content',
+                headingSelector: 'h1, h2, h3, h4, h5',
+                collapseDepth: 1,
+                orderedList: false,
+                scrollSmooth: true,
+            })
+        }
+    )
+
+    function expand_toc() {
+        var b = document.querySelector(".tocbot-toc-expand");
+        tocbot.init({
+            tocSelector: '.tocbot-list',
+            contentSelector: '.post-content',
+            headingSelector: 'h1, h2, h3, h4, h5',
+            collapseDepth: 6,
+            orderedList: false,
+            scrollSmooth: true,
+        });
+        b.setAttribute("onclick", "collapse_toc()");
+        b.innerHTML = "Collapse all"
+    }
+
+    function collapse_toc() {
+        var b = document.querySelector(".tocbot-toc-expand");
+        tocbot.init({
+            tocSelector: '.tocbot-list',
+            contentSelector: '.post-content',
+            headingSelector: 'h1, h2, h3, h4, h5',
+            collapseDepth: 1,
+            orderedList: false,
+            scrollSmooth: true,
+        });
+        b.setAttribute("onclick", "expand_toc()");
+        b.innerHTML = "Expand all"
+    }
+
+    function go_top() {
+        window.scrollTo(0, 0);
+    }
+
+    function go_bottom() {
+        window.scrollTo(0, document.body.scrollHeight);
+    }
+
+</script>
+    
+
+    
+    <article class="post-wrap">
+        <header class="post-header">
+            <h1 class="post-title">강화학습 기초1: MDP와 벨만방정식(1)</h1>
+            
+                <div class="post-meta">
+                    
+                        Author: <a itemprop="author" rel="author" href="/">Jay_Kim</a>
+                    
+
+                    
+                        <span class="post-time">
+                        Date: <a href="#">January 20, 2021&nbsp;&nbsp;20:42:17</a>
+                        </span>
+                    
+
+                    
+                        <span class="post-category">
+                    Category:
+                            
+                                <a href="/categories/ReinforcementLearning/">ReinforcementLearning</a>
+                            
+                        </span>
+                    
+                </div>
+            
+        </header>
+
+        <div class="post-content">
+            <blockquote>
+<p>본 포스트는 “파이썬과 케라스로 배우는 강화학습” 도서의 두번째 리뷰 포스트입니다.<br>이전 포스트를 참고해주세요!🤓<br><a target="_blank" rel="noopener" href="http://www.yes24.com/Product/Goods/44136413">http://www.yes24.com/Product/Goods/44136413</a></p>
+</blockquote>
+<h2 id="2장-강화학습-기초-1-MDP와-벨만-방정식-1"><a href="#2장-강화학습-기초-1-MDP와-벨만-방정식-1" class="headerlink" title="2장 강화학습 기초 1: MDP와 벨만 방정식(1)"></a>2장 강화학습 기초 1: MDP와 벨만 방정식(1)</h2><hr>
+<p>강화학습이 결국 <strong>어떠한 방정식을 풀어내는 방법</strong> 이라면 그 방정식이 무엇인지 아는 것이 중요할 것이다.<br>여기서 그 방정식이란 바로 <code>벨만 방정식</code>을 가리킨다.</p>
+<h3 id="MDP"><a href="#MDP" class="headerlink" title="MDP"></a><strong>MDP</strong></h3><p>앞서 살펴보았듯 <code>MDP</code>는 순차적으로 결정해야하는 문제를 수학적으로 표현한다.</p>
+<div class="image-box">
+                <img src="/image/post_image/20210121/MDP.png" style="width:500px; height:150px" alt="MDP의 구성요소" title="" class="">
+                <p class="image-box-title">MDP의 구성요소</p>
+            </div>
+
+<p>문제를 잘못 정의하면 에이전트가 학습을 못할 수도 있다. 따라서 문제의 정의는 에이전트가 학습하는 데 가장 중요한 단계 중 하나이다. 에이전트를 구현하는 사람은 학습하기에 많지도 않고 적지도 않은 <strong>적절한 정보</strong>를 에이전트가 알 수도 있도록 문제를 정의해야 한다. <code>MDP</code>의 이해를 돕기위해 이제 <code>그리드 월드(Grid World)</code>라는 예제를 살펴볼 것인데, 그리드는 격자이고 그리드 월드는 격자로 이뤄진 환경에서 문제를 푸는 각종 예제를 뜻한다. 어디한번 MDP의 구성요소를 하나하나 살펴보자.</p>
+<h3 id="상태"><a href="#상태" class="headerlink" title="상태"></a>상태</h3><p>$S$는 에이전트가 관찰 가능한 상태의 집합이다. 상태라는 말의 의미가 모호할 수 있는데 <strong>자신의 상황에 대한 관찰</strong> 이 상태에 대한 가장 정확한 표현이다. 로봇과 같은 실제 세상에서의 에이전트에게 상태는 센서 값이 될 것이다. 하지만 이 책에서와 같이 게임을 학습하기 위한 에이전트는 사용자가 상태를 정의해줘야 한다. 이때 <strong>‘내가 정의하는 상태가 에이전트가 학습하기에 충분한 정보를 주는 것인가?’</strong> 라는 질문을 스스로에게 던져보는 것이 좋다.</p>
+<div class="image-box">
+                <img src="/image/post_image/20210121/greedworld.png" style="width:400px; height:300px" alt="그리드월드에서 상태는 좌표를 의미한다" title="" class="">
+                <p class="image-box-title">그리드월드에서 상태는 좌표를 의미한다</p>
+            </div>
+
+<p>위의 그림과 같이 그리드월드(5x5)에서는 <strong>격자 상의 각 위치(좌표)</strong> 가 상태가 된다. 그리드월드(5x5)의 상태는 모든 격자의 위치로서 총 25개가 있다. 각 상태는 (*,y)로 이뤄진 좌표로서 그리드월드의 가로축이 x축이고 세로축이 y축이다. 식으로는 다음과 같이 표현할 수 있다.</p>
+<p>$$S = [ (1,1),(1,2),(1,3),…,(5,5)] $$</p>
+<p>에이전트는 시간에 따라 25개의 상태의 집합 안에 있는 상태를 탐험하게 된다. 시간은 t라고 표현하고, 시간 t일때의 상태를 $S_t$라고 표현하는데, 만약 시간이 t일때 상태가 (1,3)이라면 $S_t = (1,3)$와 같이 표현한다.</p>
+<p><code>MDP</code> 에서 상태는 시간에 따라 확률적으로 변한다. t = 1일때 상태는 $S_t=(1,3)$일 수도 $S_t=(4,2)$일 수도 있다. 시간 t에서 에이전트가 있을 상태가 <strong>확률 변수</strong> 라는 뜻이다. 예를 들어 주사위를 던진다고 할때, 주사위를 던지는 실험은 임의 실험이고 주사위를 던져서 나오는 값은 변수가 된다. 임의의 실험에서 나오는 변수는 자신이 나타날 확률값을 가지고 있으며, 이 변수는 확률 변수가 된다.. 보통 <strong>“시간 t에서의 상태 $S_t$가 어떤 상태 $s$다”</strong> 를 표현할때 $S_t = s$와 같이 적는다.</p>
+<blockquote>
+<p>임의의 시간 t에서의 상태 =&gt; $S_t$<br>$S_t$가 어떤 상태 $s$다 =&gt; $S_t = s$</p>
+</blockquote>
+<h3 id="행동"><a href="#행동" class="headerlink" title="행동"></a>행동</h3><p>에이전트가 상태 $S_t$에서 할 수 있는 가능한 행동의 집합은 $A$이다. 보통 에이전트가 할 수 있는 행동은 모든 상태에서 같다. 따라서 하나의 집합 $A$로 나타낼 수 있다. <strong>시간 t에서의 행동 a</strong>는 $A_t = a$와 같이 표현하며, t라는 시간에 에이전트가 어떤 행동을 할지 정해져 있는 것이 아니므로 $A_t$와 같이 대문자로 표현한다. 즉 확률변수이다 그리드월드에서 에이전트가 할 수 있는 행동의 집합은 아래와 같다.</p>
+<p>$$ A = [up, down, left, right] $$</p>
+<p>만약 시간 t에서 $S_t=(3,1)$이고 $A_t=right$ 라면 $S_{t+1} = (4,1)$이다. 그런데 바람과 같은 예상치 못한 요소가 있다면 에이전트는 (4,1)에 도달하지 못할 수도 있고, 이러한 요소를 포함하여 에이전트가 어디로 이동할지 결정하는 것을 <code>상태 변환 확률</code>이라고 한다. 이는 조금 뒤 자세히 다루도록 하겠다.</p>
+<h3 id="보상함수"><a href="#보상함수" class="headerlink" title="보상함수"></a>보상함수</h3><p><strong>보상(reward)</strong> 은 에이전트가 학습할 수 있는 유일한 정보로서 환경이 에이전트에게 주는 정보이다. 시간 t에서 상태가 $S_t = s$이고 행동이 $A_t = a$일 때 보상함수는 아래와 같이 정의된다.</p>
+<p>$$r(s,a) = E[R_{t+1} | S_t=s, A_t=a] $$</p>
+<p>보상함수는 시간 t일 때 상태가 $S_t=s$이고 그 상태에서 행동 $A_t=a$를 했을 경우에 받을 보상에 대한 기댓값 $E$이다. 여기서 <strong>기댓값</strong> 은 무엇일까? (한번쯤 쉽게 풀어써보고 싶었는데 책의 예시가 아주 적절하다🤩) </p>
+<p><strong>기댓값</strong> 이란 일종의 평균이다. 주사위의 기댓값을 한번 생각해보면, 모든 면이 ${1 \over 6}$의 동등한 확률로 나올테고, 주사위에서는 다음과 같은 값이 나올 것이라고 <strong>기대</strong> 할 수 있다.</p>
+<p>$$기댓값_{주사위} = 1*{1 \over 6}+2*{1 \over 6}+3*{1 \over 6}+4*{1 \over 6}+5*{1 \over 6}+6*{1 \over 6} = {21 \over 6} $$</p>
+<p>다시 본론으로 돌아와, <strong>보상함수는 왜 기댓값으로 표현하는 것일까?</strong></p>
+<blockquote>
+<p>보상을 에이전트에게 주는 것은 환경이고,<br>환경에 따라서 같은 상태에서 같은 행동을 취하더라도 다른 보상을 줄 수 있기 때문이다.</p>
+</blockquote>
+<p>또한 보상함수에서 특이한 점은 에이전트가 어떤 상태에서 행동한 것은 시간 t에서인데 보상을 받는 것은 t+1이라는 것이다. 이는 보상을 에이전트가 알고 있는 것이 아니라 환경이 알려주기 때문이다. 때문에 에이전트가 받는 보상은 하나의 시간 단위가 지난 다음에 주어진다. 이 시간단위를 앞으로 <code>타임스텝(time step)</code>이라고 한다.</p>
+<h3 id="상태-변환-확률"><a href="#상태-변환-확률" class="headerlink" title="상태 변환 확률"></a>상태 변환 확률</h3><p>에이전트가 어떤 상태에서 어떤 행동을 취한다면 에이전트의 상태는 변할 것이다. $s’$은 다음 스텝에 에이전트가 갈 수 있는 어떤 특정한 상태를 의미하는데, 꼭 다음 상태에 도달하리라는 보장은 없다. 옆에서 바람이 불 수도 있고 갑자기 넘어질 수 있는 것이다. 이처럼 상태의 변화에는 확률적인 요인이 들어가고, 이를 수치적으로 표현한 것이 <code>상태 변환 확률</code> $P$이다.</p>
+<p>$$ P_{ss’}^a = P[S_{t+1} = s’| S_t=s, A_t=a]$$</p>
+<p><code>상태 변환 확률</code>은 상태 $s$에서 행동 $a$를 취했을 때 다른 상태 $s’$으로 도달할 확률이다. 이 값은 보상과 마찬가지로 에이전트가 알지 못하는 값으로서 에이전트가 아닌 환경의 일부이다. 다른 말로 <strong>환경의 모델(model)</strong> 이라 부르기도 한다. </p>
+<p>환경은 에이전트가 행동을 취하면 <code>상태 변환 확률</code>을 통해 다음에 에이전트가 갈 상태를 알려준다. </p>
+<h3 id="할인율"><a href="#할인율" class="headerlink" title="할인율"></a>할인율</h3><p>에이전트가 항상 현재에 판단을 내리기 때문에 현재에 가까운 보상일 수록 더 큰 가치를 지닌다. 가령 우리가 10억원 짜리 복권에 당첨되었다고 생각해보자. 지금 당장 받을 수도 10년 뒤에 받을 수도 있다고 할때, 우리는 당연히 당장 받는 것을 선호할 것이다. 시간이 지남에 따라 이자가 붙을 것을 가정하기 때문이다. 이는 다른 말로 <strong>같은 보상이면 나중에 받을수록 가치가 줄어든다</strong> 고 말할 수 있다. 강화학습에도 이와 같은 가정이 적용되고 이를 수학적으로 표현하기 위해 <code>할인율(Discount Factor)</code>이라는 개념을 도입한다.</p>
+<p>$$\gamma \in [0,1]$$</p>
+<p><code>할인율</code>은 0과 1사이의 값이고, 보상에 곱해지면 보상이 감소한다. 이렇게 미래의 가치를 현재의 가치로 환산하는 것을 <strong>할인한다</strong> 고 하고, 시간에 따라 할인하는 비율을 할인율이라고 한다. 만약 현재의 시간 t로부터 시간 k가 지난 후에 보상을 $R_t+k$만큼 받을 것이라고 하면 그 보상의 가치는 아래와 같다</p>
+<p>$$\gamma^{k-1}R_{t+k}$$</p>
+<blockquote>
+<p>더 먼 미래에 받는 보상일수록 현재의 에이전트는 더 작은 값으로 받아들인다.</p>
+</blockquote>
+<h3 id="정책"><a href="#정책" class="headerlink" title="정책"></a>정책</h3><p><code>정책</code>은 모든 상태에서 에이전트가 할 행동이다. 상태가 입력으로 들어오면 행동을 출력으로 내보내는 <strong>일종의 함수</strong> 라고 생각해도 좋다. 정책은 각 상태에서 단 하나의 행동만을 나타낼 수도 있고, 확률적으로 $a_1 = 10%$, $a_2= 90%$와 같이 나타낼 수도 있다. 에이전트가 학습하고 있을 땐, 정책이 하나의 행동만을 선택하기 보다는 확률적으로 여러개의 행동을 선택할 수 있어야 하며 수식으로 나타내면 아래와 같다.</p>
+<p>$$ \pi(a|s) = P[A_t = a|S_t=s]$$</p>
+<p>이러한 정책은 하나의 예시로서 각 사애마다 어떤 행동을 해야할지 아래의 그림과 같이 알려준다.</p>
+<div class="image-box">
+                <img src="/image/post_image/20210121/policy.png" style="width:300px; height:300px" alt="그리드월드에서의 정책" title="" class="">
+                <p class="image-box-title">그리드월드에서의 정책</p>
+            </div>
+
+<p>정책만 가지고 있으면 에이전트는 사실 모든 상태에서 자신이 해야 할 행동을 알 수 있다. 그러나 강화학습 문제를 통해 알고 싶은 것은 그냥 정책이 아니라 <strong>최적의 정책</strong> 이다.</p>
+<blockquote>
+<p>최적 정책을 얻기 위해서 현재의 정책보다 더 좋은 정책을 학습해나가는 것이 강화학습이다.</p>
+</blockquote>
+<h3 id="정리"><a href="#정리" class="headerlink" title="정리"></a>정리</h3><p>이처럼 <code>MDP</code>를 통해 순차적 행동 결정 문제를 정의했다. 에이전트가 현재 상태에서 앞으로 받을 보상들을 고려해서 행동을 결정한다. 그러면 환경은 에이전트에게 실제 보상과 다음 상태를 알려준다. 이러한 과정을 반복하면서 에이전트는 어떤 상태에서 앞으로 받을 것이라 예상했던 보상에 대해 틀렸다는 것을 알게 된다. 이때 앞으로 받을 것이라 예상하는 보상을 <code>가치함수(Value Function)</code>라고 하며, 다음 장에서 설명된다. 그러한 과정에서 에이전트는 실제로 받은 보상을 토대로 가치함수와 정책을 바꿔나간다. 이러한 학습 과정을 충분히 반복한다면 가장 많은 보상을 받게하는 정책을 학습할 수 있다.</p>
+
+        </div>
+
+        
+
+        <!-- 댓글부분 -->
+        <br /><br />
+        <div id="disqus_thread"></div>
+        <script>
+            /**
+            *  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+            *  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables*/
+            /*
+            var disqus_config = function () {
+            this.page.url = PAGE_URL;  // Replace PAGE_URL with your page's canonical URL variable
+            this.page.identifier = PAGE_IDENTIFIER; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+            };
+            */
+            (function() { // DON'T EDIT BELOW THIS LINE
+            var d = document, s = d.createElement('script');
+            s.src = 'https://longshiine.disqus.com/embed.js';
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+            })();
+        </script>
+        <noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+        <script id="dsq-count-scr" src="//longshiine.disqus.com/count.js" async></script>                  
+        <br /><br />
+
+        <section class="post-tags">
+            <div>
+                <!-- <span>Tag(s):</span>
+                <span class="tag">
+                    
+                    
+                        <a href="/tags/DeepLearning/"># DeepLearning</a>
+                    
+                        <a href="/tags/ReinforcementLearning/"># ReinforcementLearning</a>
+                    
+                        
+                </span> -->
+            </div>
+            <div>
+                <a href="javascript:window.history.back();">back</a>
+                <span>· </span>
+                <a href="/">home</a>
+            </div>
+        </section>
+        <section class="post-nav">
+            
+                <a class="prev" rel="prev" href="/2021/01/22/%EA%B0%95%ED%99%94%ED%95%99%EC%8A%B5-%EA%B8%B0%EC%B4%881-MDP%EC%99%80-%EB%B2%A8%EB%A7%8C%EB%B0%A9%EC%A0%95%EC%8B%9D(2)/">강화학습 기초1: MDP와 벨만방정식(2)</a>
+            
+            
+            <a class="next" rel="next" href="/2021/01/19/%EA%B0%95%ED%99%94%ED%95%99%EC%8A%B5%20%EA%B0%9C%EC%9A%94/">강화학습 개요</a>
+            
+        </section>
+
+
+    </article>
+</div>
+
+        </div>
+        <footer id="footer" class="footer">
+    <div class="copyright">
+        <span>© Jay_Kim | Powered by <a href="https://hexo.io" target="_blank">Hexo</a> & <a href="https://github.com/Siricee/hexo-theme-Chic" target="_blank">Chic</a></span>
+    </div>
+</footer>
+
+    </div>
+</body>
+</html>
