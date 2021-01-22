@@ -247,12 +247,12 @@
             <p>cs231n assignment2의 <code>Convolution Layer</code>를 구현해보며 느낀점을 정리해보았다.<br>개념보다는 구현에 초점을 맞춘 포스트이므로 참고바람.</p>
 <h3 id="Convolution-Layer"><a href="#Convolution-Layer" class="headerlink" title="Convolution Layer"></a>Convolution Layer</h3><p>CNN의 핵심은 convolution operation 즉, 합성곱 연산이다. 기존의 Fully Connected Layer와 다른 Convolution Layer의 특징은 Input의 Spatial Structure, 공간적 구조를 보존한다는 것이다. Convolution 연산을 수행하면 input에 대한 feature map을 뽑을 수 있는데,</p>
 <div class="image-box">
-                <img src="/image/post_image/20200829/conv_layer1.png" alt="요로코롬1" title="" class="">
-                <p class="image-box-title">요로코롬1</p>
+                <img src="/image/post_image/20200829/conv_layer1.png" style="요로코롬1" alt="" title="" class="">
+                <p class="image-box-title"></p>
             </div>
 <div class="image-box">
-                <img src="/image/post_image/20200829/conv_layer2.png" alt="요로코롬2" title="" class="">
-                <p class="image-box-title">요로코롬2</p>
+                <img src="/image/post_image/20200829/conv_layer2.png" style="요로코롬2" alt="" title="" class="">
+                <p class="image-box-title"></p>
             </div>
 
 <p>filter의 개수에 따라 output인 activation map의 depth가 달라지며, filter가 어떤식으로 input을 sliding 하는지에 따라 activation map의 size가 변화한다. input_size(N), filter_size(F), padding(p) 등의 조건이 있다면 다음의 식으로 간단하게 Output size를 알아낼 수 있다.</p>
@@ -271,14 +271,14 @@
 </ol>
 <p>요런 문제이다.<br>그럼 computation graph를 한번 생각해보자.</p>
 <div class="image-box">
-                <img src="/image/post_image/20200829/Conv_forward.jpeg" alt="computational graph" title="" class="">
-                <p class="image-box-title">computational graph</p>
+                <img src="/image/post_image/20200829/Conv_forward.jpeg" style="computational graph" alt="" title="" class="">
+                <p class="image-box-title"></p>
             </div>
 
 <p>다이렉트로 out이 나오는 그래프는 아니다.<br>먼저 input x에 padding을 추가해주고, filter의 크기만큼을 crop한 뒤, filter와 내적을 취해주고, bias term을 더해주는 과정이다.<br>이 과정을 거치고 나면 (N,F)의 spatial_out이 계산되는 데,</p>
 <div class="image-box">
-                <img src="/image/post_image/20200829/conv_layer3.png" alt="spatial_out 생김새" title="" class="">
-                <p class="image-box-title">spatial_out 생김새</p>
+                <img src="/image/post_image/20200829/conv_layer3.png" style="spatial_out 생김새" alt="" title="" class="">
+                <p class="image-box-title"></p>
             </div>
 
 <p>요 그림에서 가운데 공이 담긴 녀석(공이 각각의 필터가 계산한 값이고, F개 있다고 보면 됨)이 N개 있는 꼴이라고 생각하면 된다.</p>
@@ -333,9 +333,9 @@
                 <span class="tag">
                     
                     
-                        <a href="/tags/DeepLearning/"># DeepLearning</a>
-                    
                         <a href="/tags/CNN/"># CNN</a>
+                    
+                        <a href="/tags/DeepLearning/"># DeepLearning</a>
                     
                         
                 </span> -->
