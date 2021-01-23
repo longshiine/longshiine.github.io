@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="kor">
+<head>
+    <meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta name="author" content="Jay_Kim">
+
+
+    <meta name="subtitle" content="Jay's blog">
+
+
+    <meta name="description" content="blog">
+
+
+    <meta name="keywords" content="deeplearning, blog, book, life, social">
+
+
+<title>강화학습 기초2: 그리드월드와 다이내믹 프로그래밍 | Jaylog</title>
+
+
+
+    <link rel="icon" href="/favicon.ico">
+
+
+
+
+    <!-- stylesheets list from _config.yml -->
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+
+
+
+    <!-- scripts list from _config.yml -->
+    
+    <script src="/js/script.js"></script>
+    
+    <script src="/js/tocbot.min.js"></script>
+    
+
+
+
+    
+    
+        
+            <!-- MathJax配置，可通过单美元符号书写行内公式等 -->
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+    "HTML-CSS": {
+        preferredFont: "TeX",
+        availableFonts: ["STIX","TeX"],
+        linebreaks: { automatic:true },
+        EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50)
+    },
+    tex2jax: {
+        inlineMath: [ ["$", "$"], ["\\(","\\)"] ],
+        processEscapes: true,
+        ignoreClass: "tex2jax_ignore|dno",
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+    },
+    TeX: {
+        equationNumbers: { autoNumber: "AMS" },
+        noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } },
+        Macros: { href: "{}" }
+    },
+    messageStyle: "none"
+    });
+</script>
+<!-- 给MathJax元素添加has-jax class -->
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+<!-- 通过连接CDN加载MathJax的js代码 -->
+<script type="text/javascript" async
+        src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML">
+</script>
+
+
+        
+    
+
+
+<meta name="generator" content="Hexo 5.0.0"></head>
+<body>
+    <div class="wrapper">
+        <header>
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-header header-logo"><a href="/">Jay_log</a></div>
+            <div class="menu navbar-right">
+                
+                    <a class="menu-item" href="/archives">Posts</a>
+                
+                    <a class="menu-item" href="/category">Categories</a>
+                
+                    <a class="menu-item" href="/tag">Tags</a>
+                
+                    <a class="menu-item" href="/about">About</a>
+                
+                <input id="switch_default" type="checkbox" class="switch_default">
+                <label for="switch_default" class="toggleBtn"></label>
+            </div>
+        </div>
+    </nav>
+
+    
+    <nav class="navbar-mobile" id="nav-mobile">
+        <div class="container">
+            <div class="navbar-header">
+                <div>
+                    <a href="/">Jay_log</a><a id="mobile-toggle-theme">·&nbsp;Light</a>
+                </div>
+                <div class="menu-toggle" onclick="mobileBtn()">&#9776; Menu</div>
+            </div>
+            <div class="menu" id="mobile-menu">
+                
+                    <a class="menu-item" href="/archives">Posts</a>
+                
+                    <a class="menu-item" href="/category">Categories</a>
+                
+                    <a class="menu-item" href="/tag">Tags</a>
+                
+                    <a class="menu-item" href="/about">About</a>
+                
+            </div>
+        </div>
+    </nav>
+
+</header>
+<script>
+    var mobileBtn = function f() {
+        var toggleMenu = document.getElementsByClassName("menu-toggle")[0];
+        var mobileMenu = document.getElementById("mobile-menu");
+        if(toggleMenu.classList.contains("active")){
+           toggleMenu.classList.remove("active")
+            mobileMenu.classList.remove("active")
+        }else{
+            toggleMenu.classList.add("active")
+            mobileMenu.classList.add("active")
+        }
+    }
+</script>
+        <div class="main">
+            <div class="container">
+    
+    
+        <div class="post-toc">
+    <div class="tocbot-list">
+    </div>
+    <div class="tocbot-list-menu">
+        <a class="tocbot-toc-expand" onclick="expand_toc()">Expand all</a>
+        <a onclick="go_top()">Back to top</a>
+        <a onclick="go_bottom()">Go to bottom</a>
+    </div>
+</div>
+
+<script>
+    document.ready(
+        function () {
+            tocbot.init({
+                tocSelector: '.tocbot-list',
+                contentSelector: '.post-content',
+                headingSelector: 'h1, h2, h3, h4, h5',
+                collapseDepth: 1,
+                orderedList: false,
+                scrollSmooth: true,
+            })
+        }
+    )
+
+    function expand_toc() {
+        var b = document.querySelector(".tocbot-toc-expand");
+        tocbot.init({
+            tocSelector: '.tocbot-list',
+            contentSelector: '.post-content',
+            headingSelector: 'h1, h2, h3, h4, h5',
+            collapseDepth: 6,
+            orderedList: false,
+            scrollSmooth: true,
+        });
+        b.setAttribute("onclick", "collapse_toc()");
+        b.innerHTML = "Collapse all"
+    }
+
+    function collapse_toc() {
+        var b = document.querySelector(".tocbot-toc-expand");
+        tocbot.init({
+            tocSelector: '.tocbot-list',
+            contentSelector: '.post-content',
+            headingSelector: 'h1, h2, h3, h4, h5',
+            collapseDepth: 1,
+            orderedList: false,
+            scrollSmooth: true,
+        });
+        b.setAttribute("onclick", "expand_toc()");
+        b.innerHTML = "Expand all"
+    }
+
+    function go_top() {
+        window.scrollTo(0, 0);
+    }
+
+    function go_bottom() {
+        window.scrollTo(0, document.body.scrollHeight);
+    }
+
+</script>
+    
+
+    
+    <article class="post-wrap">
+        <header class="post-header">
+            <h1 class="post-title">강화학습 기초2: 그리드월드와 다이내믹 프로그래밍</h1>
+            
+                <div class="post-meta">
+                    
+                        Author: <a itemprop="author" rel="author" href="/">Jay_Kim</a>
+                    
+
+                    
+                        <span class="post-time">
+                        Date: <a href="#">January 23, 2021&nbsp;&nbsp;12:58:43</a>
+                        </span>
+                    
+
+                    
+                        <span class="post-category">
+                    Category:
+                            
+                                <a href="/categories/ReinforcementLearning/">ReinforcementLearning</a>
+                            
+                        </span>
+                    
+                </div>
+            
+        </header>
+
+        <div class="post-content">
+            <blockquote>
+<p>본 포스트는 “파이썬과 케라스로 배우는 강화학습” 도서의 네번째 리뷰 포스트입니다.<br><a target="_blank" rel="noopener" href="http://www.yes24.com/Product/Goods/44136413">http://www.yes24.com/Product/Goods/44136413</a></p>
+</blockquote>
+<h2 id="3장-강화학습-기초-2-그리드월드와-다이내믹-프로그래밍"><a href="#3장-강화학습-기초-2-그리드월드와-다이내믹-프로그래밍" class="headerlink" title="3장 강화학습 기초 2: 그리드월드와 다이내믹 프로그래밍"></a>3장 강화학습 기초 2: 그리드월드와 다이내믹 프로그래밍</h2><hr>
+<p>지금까지 열심히 강화학습 문제란 무엇인지, 문제를 어떻게 수학적으로 정의할 수 있는지, 그러한 문제의 최적의 방정식은 어떻게 구성되었는지를 살펴보았다. 이제 본격적으로 예제와 함께 문제를 풀어볼 시간이다 👉</p>
+<p><code>다이내믹 프로그래밍(Dynamic Programming)</code>은 작은 문제가 큰 문제 안에 중첩되어 있는 경우, 작은 문제의 답을 다른 작은 문제에서 이용함으로써 효율적으로 계산하는 방법이다.</p>
+<p>다이내믹 프로그래밍을 이용하여,</p>
+<ul>
+<li><strong>벨만 기대 방정식</strong> 을 푸는 것 –&gt; <code>정책 이터레이션</code></li>
+<li><strong>벨만 최적 방정식</strong> 을 푸는 것 –&gt; <code>가치 이터레이션</code></li>
+</ul>
+<p>이며, 이번 장에서는 정책 이터레이션과 가치 이터레이션을 그리드월드 예제를 통해 코드로 실습해본다.</p>
+<blockquote>
+<p>다이내믹 프로그래밍은 이후에 강화학습의 근간이 되기 때문에 제대로 이해하는 것이 중요하다!!</p>
+</blockquote>
+<h3 id="순차적-행동-결정-문제"><a href="#순차적-행동-결정-문제" class="headerlink" title="순차적 행동 결정 문제"></a>순차적 행동 결정 문제</h3><p><strong>강화학습</strong> 은 순차적으로 행동을 결정해야 하는 문제를 푸는 방법중 하나 이다. 2장에서 <strong>MDP</strong> 를 정의하고 <strong>벨만 방정식</strong> 을 세우는 과정을 다뤘다. 순차적 행동 결정 문제를 푸는 방법을 정리하면 아래와 같다.</p>
+<ol>
+<li>순차적 행동문제 –&gt; MDP로 전환</li>
+<li>가치함수를 벨만 방정식으로 반복적으로 계산</li>
+<li>최적 가치함수와 최적 정책 도출</li>
+</ol>
+<p>강화학습 또한 순차적 행동 결정 문제를 푸는 방법이기 때문에, 벨만 방정식을 이해해야 강화학습을 이해할 수 있다. 그렇다면 <strong>벨만 방정식을 푼다는 것</strong> 은 어떤 의미일까? 보통 수학에서 <strong>“방정식을 푼다”</strong> 라고 하면 <strong>식을 만족하는 변수의 값을 찾는 것</strong> 을 말한다. 벨만 방정식을 통해 에이전트가 하고 싶은 것은 아래의 식을 만족하는 $v^*$을 찾는 것이다. 이 값을 찾는다면 벨만 방정식은 풀린 것이며 에이전트는 <code>최적 가치함수</code>를 알아낸 것이다.</p>
+<p>$$v^*(s) = max_{a}E[R_{t+1} + \gamma v^*(S_{t+1}) | S_t=s, A_t=a]$$</p>
+<h3 id="다이내믹-프로그래밍"><a href="#다이내믹-프로그래밍" class="headerlink" title="다이내믹 프로그래밍"></a>다이내믹 프로그래밍</h3><p>다이내믹 프로그래밍의 기본적인 아이디어는 큰 문제 안에 작은 문제들이 중첩된 경우, 전체 큰 문제를 작은 문제로 쪼개서 풀겠다는 것이다. 이때 각각의 작은 문제들이 별개가 아니기 때문에 작은 문제들의 해답을 서로서로 이용할 수 있다. 이 특성을 이용하면 <strong>결과적으로 계산량을 줄일 수 있다.</strong> (책에는 꽤 길게 서술되어 있는데 조금 생략했다)</p>
+<p>문제의 목표는 각 상태의 참 가치함수를 구하는 것이다. 즉, $v_\pi (s_1), v_\pi (s_2), v_\pi (s_3) …$의 참값을 구하는 것이다. 이 큰 문제를 작은 문제로 나누어서 구하게 되면, 아래와 같이 풀 수 있다.</p>
+<p>$$v_0(s) \to v_1(s) \to … \to v_k(s) \to … \to v_\pi (s)$$</p>
+<p>한번의 화살표는 한 번의 계산으로서 $iteration = k$ 에서 $iteration=k+1$이 되는 과정이다. 이 계산은 모든 상태에 대해 진행하며 한번 계산이 끝나면 모든 상태의 가치함수를 업데이트한다. 다음 계산은 업데이트된 가치함수를 이용해 다시 똑같은 과정을 반복하는 것이다. 이런 식으로 계산하면 이전의 정보를 이용해 효율적으로 업데이트할 수 있게 된다.</p>
+<h3 id="격자로-이뤄진-간단한-예제-그리드월드"><a href="#격자로-이뤄진-간단한-예제-그리드월드" class="headerlink" title="격자로 이뤄진 간단한 예제: 그리드월드"></a>격자로 이뤄진 간단한 예제: 그리드월드</h3><div class="image-box">
+                <img src="/image/post_image/20210123/gridworld.png" style="width:300px; height:300px" alt="그리드월드 예제" title="" class="">
+                <p class="image-box-title">그리드월드 예제</p>
+            </div>
+
+<p>예시로 우리가 풀어볼 문제는 다음과 같다. 빨간색 네모는 에이전트를 의미하고, 에이전트는 파란색 동그라미로 가야한다. 이때 (-1)의 보상을 주는 연두색 세모가 막고 있어, 세모를 피해서 네모에 도착해 (+1)의 보상을 받는 것이다. 파란색에 도착하는 <strong>최적 정책</strong> 을 찾는 것이 우리의 목표다.</p>
+<h3 id="강화학습-알고리즘의-흐름"><a href="#강화학습-알고리즘의-흐름" class="headerlink" title="강화학습 알고리즘의 흐름"></a>강화학습 알고리즘의 흐름</h3><p>MDP부터 강화학습의 기본적인 알고리즘까지 전반적인 흐름을 도식으로 보면 다음과 같다.</p>
+<div class="image-box">
+                <img src="/image/post_image/20210123/RLflow.png" style="width:350px; height:400px" alt="그리드월드 예제" title="" class="">
+                <p class="image-box-title">그리드월드 예제</p>
+            </div>
+
+<p>자, 순차적 행동 결정 문제는 MDP를 통해 정의되었고, MDP로 정의되는 목표는 <strong>에이전트가 받을 보상의 합을 최대</strong> 로 하는 것 이며, 이는 벨만 방정식을 품으로써 달성할 수 있다. 또한 벨만 방정식은 다이내믹 프로그래밍을 통해 풀 수 있으며, 다이내믹 프로그래밍에는 <code>정책 이터레이션(policy iteration)</code>과 <code>가치 이터레이션(value iteration)</code>이 있다. 이 두 방법은 후에 <code>살사(SARSA)</code>로 발전하며, 살사는 <code>큐러닝(Q-Learning)</code>으로 이어진다.</p>
+
+        </div>
+
+        
+
+        <!-- 댓글부분 -->
+        <br /><br />
+        <div id="disqus_thread"></div>
+        <script>
+            /**
+            *  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+            *  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables*/
+            /*
+            var disqus_config = function () {
+            this.page.url = PAGE_URL;  // Replace PAGE_URL with your page's canonical URL variable
+            this.page.identifier = PAGE_IDENTIFIER; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+            };
+            */
+            (function() { // DON'T EDIT BELOW THIS LINE
+            var d = document, s = d.createElement('script');
+            s.src = 'https://longshiine.disqus.com/embed.js';
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+            })();
+        </script>
+        <noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+        <script id="dsq-count-scr" src="//longshiine.disqus.com/count.js" async></script>                  
+        <br /><br />
+
+        <section class="post-tags">
+            <div>
+                <!-- <span>Tag(s):</span>
+                <span class="tag">
+                    
+                    
+                        <a href="/tags/DeepLearning/"># DeepLearning</a>
+                    
+                        <a href="/tags/ReinforcementLearning/"># ReinforcementLearning</a>
+                    
+                        <a href="/tags/DynamicProgramming/"># DynamicProgramming</a>
+                    
+                        <a href="/tags/GridWorld/"># GridWorld</a>
+                    
+                        
+                </span> -->
+            </div>
+            <div>
+                <a href="javascript:window.history.back();">back</a>
+                <span>· </span>
+                <a href="/">home</a>
+            </div>
+        </section>
+        <section class="post-nav">
+            
+            
+            <a class="next" rel="next" href="/2021/01/22/%EA%B0%95%ED%99%94%ED%95%99%EC%8A%B5-%EA%B8%B0%EC%B4%881-%EA%B0%80%EC%B9%98%ED%95%A8%EC%88%98%EC%99%80-%EB%B2%A8%EB%A7%8C%EB%B0%A9%EC%A0%95%EC%8B%9D/">강화학습 기초1: 가치함수와 벨만방정식</a>
+            
+        </section>
+
+
+    </article>
+</div>
+
+        </div>
+        <footer id="footer" class="footer">
+    <div class="copyright">
+        <span>© Jay_Kim | Powered by <a href="https://hexo.io" target="_blank">Hexo</a> & <a href="https://github.com/Siricee/hexo-theme-Chic" target="_blank">Chic</a></span>
+    </div>
+</footer>
+
+    </div>
+</body>
+</html>
