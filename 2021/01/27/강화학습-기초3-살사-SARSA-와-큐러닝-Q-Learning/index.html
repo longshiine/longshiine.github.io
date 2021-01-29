@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="kor">
+<head>
+    <meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta name="author" content="Jay_Kim">
+
+
+    <meta name="subtitle" content="Jay's blog">
+
+
+    <meta name="description" content="blog">
+
+
+    <meta name="keywords" content="deeplearning, blog, book, life, social">
+
+
+<title>강화학습 기초3: 살사(SARSA)와 큐러닝(Q-Learning) | Jaylog</title>
+
+
+
+    <link rel="icon" href="/favicon.ico">
+
+
+
+
+    <!-- stylesheets list from _config.yml -->
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+
+
+
+    <!-- scripts list from _config.yml -->
+    
+    <script src="/js/script.js"></script>
+    
+    <script src="/js/tocbot.min.js"></script>
+    
+
+
+
+    
+    
+        
+            <!-- MathJax配置，可通过单美元符号书写行内公式等 -->
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+    "HTML-CSS": {
+        preferredFont: "TeX",
+        availableFonts: ["STIX","TeX"],
+        linebreaks: { automatic:true },
+        EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50)
+    },
+    tex2jax: {
+        inlineMath: [ ["$", "$"], ["\\(","\\)"] ],
+        processEscapes: true,
+        ignoreClass: "tex2jax_ignore|dno",
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+    },
+    TeX: {
+        equationNumbers: { autoNumber: "AMS" },
+        noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } },
+        Macros: { href: "{}" }
+    },
+    messageStyle: "none"
+    });
+</script>
+<!-- 给MathJax元素添加has-jax class -->
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+<!-- 通过连接CDN加载MathJax的js代码 -->
+<script type="text/javascript" async
+        src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML">
+</script>
+
+
+        
+    
+
+
+<meta name="generator" content="Hexo 5.0.0"></head>
+<body>
+    <div class="wrapper">
+        <header>
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-header header-logo"><a href="/">Jay_log</a></div>
+            <div class="menu navbar-right">
+                
+                    <a class="menu-item" href="/archives">Posts</a>
+                
+                    <a class="menu-item" href="/category">Categories</a>
+                
+                    <a class="menu-item" href="/tag">Tags</a>
+                
+                    <a class="menu-item" href="/about">About</a>
+                
+                <input id="switch_default" type="checkbox" class="switch_default">
+                <label for="switch_default" class="toggleBtn"></label>
+            </div>
+        </div>
+    </nav>
+
+    
+    <nav class="navbar-mobile" id="nav-mobile">
+        <div class="container">
+            <div class="navbar-header">
+                <div>
+                    <a href="/">Jay_log</a><a id="mobile-toggle-theme">·&nbsp;Light</a>
+                </div>
+                <div class="menu-toggle" onclick="mobileBtn()">&#9776; Menu</div>
+            </div>
+            <div class="menu" id="mobile-menu">
+                
+                    <a class="menu-item" href="/archives">Posts</a>
+                
+                    <a class="menu-item" href="/category">Categories</a>
+                
+                    <a class="menu-item" href="/tag">Tags</a>
+                
+                    <a class="menu-item" href="/about">About</a>
+                
+            </div>
+        </div>
+    </nav>
+
+</header>
+<script>
+    var mobileBtn = function f() {
+        var toggleMenu = document.getElementsByClassName("menu-toggle")[0];
+        var mobileMenu = document.getElementById("mobile-menu");
+        if(toggleMenu.classList.contains("active")){
+           toggleMenu.classList.remove("active")
+            mobileMenu.classList.remove("active")
+        }else{
+            toggleMenu.classList.add("active")
+            mobileMenu.classList.add("active")
+        }
+    }
+</script>
+        <div class="main">
+            <div class="container">
+    
+    
+        <div class="post-toc">
+    <div class="tocbot-list">
+    </div>
+    <div class="tocbot-list-menu">
+        <a class="tocbot-toc-expand" onclick="expand_toc()">Expand all</a>
+        <a onclick="go_top()">Back to top</a>
+        <a onclick="go_bottom()">Go to bottom</a>
+    </div>
+</div>
+
+<script>
+    document.ready(
+        function () {
+            tocbot.init({
+                tocSelector: '.tocbot-list',
+                contentSelector: '.post-content',
+                headingSelector: 'h1, h2, h3, h4, h5',
+                collapseDepth: 1,
+                orderedList: false,
+                scrollSmooth: true,
+            })
+        }
+    )
+
+    function expand_toc() {
+        var b = document.querySelector(".tocbot-toc-expand");
+        tocbot.init({
+            tocSelector: '.tocbot-list',
+            contentSelector: '.post-content',
+            headingSelector: 'h1, h2, h3, h4, h5',
+            collapseDepth: 6,
+            orderedList: false,
+            scrollSmooth: true,
+        });
+        b.setAttribute("onclick", "collapse_toc()");
+        b.innerHTML = "Collapse all"
+    }
+
+    function collapse_toc() {
+        var b = document.querySelector(".tocbot-toc-expand");
+        tocbot.init({
+            tocSelector: '.tocbot-list',
+            contentSelector: '.post-content',
+            headingSelector: 'h1, h2, h3, h4, h5',
+            collapseDepth: 1,
+            orderedList: false,
+            scrollSmooth: true,
+        });
+        b.setAttribute("onclick", "expand_toc()");
+        b.innerHTML = "Expand all"
+    }
+
+    function go_top() {
+        window.scrollTo(0, 0);
+    }
+
+    function go_bottom() {
+        window.scrollTo(0, document.body.scrollHeight);
+    }
+
+</script>
+    
+
+    
+    <article class="post-wrap">
+        <header class="post-header">
+            <h1 class="post-title">강화학습 기초3: 살사(SARSA)와 큐러닝(Q-Learning)</h1>
+            
+                <div class="post-meta">
+                    
+                        Author: <a itemprop="author" rel="author" href="/">Jay_Kim</a>
+                    
+
+                    
+                        <span class="post-time">
+                        Date: <a href="#">January 27, 2021&nbsp;&nbsp;11:43:24</a>
+                        </span>
+                    
+
+                    
+                        <span class="post-category">
+                    Category:
+                            
+                                <a href="/categories/ReinforcementLearning/">ReinforcementLearning</a>
+                            
+                        </span>
+                    
+                </div>
+            
+        </header>
+
+        <div class="post-content">
+            <blockquote>
+<p>본 포스트는 “파이썬과 케라스로 배우는 강화학습” 도서의 일곱번째 리뷰 포스트입니다.<br><a target="_blank" rel="noopener" href="http://www.yes24.com/Product/Goods/44136413">http://www.yes24.com/Product/Goods/44136413</a></p>
+</blockquote>
+<h2 id="4장-강화학습-기초-3-강화학습-알고리즘"><a href="#4장-강화학습-기초-3-강화학습-알고리즘" class="headerlink" title="4장 강화학습 기초 3: 강화학습 알고리즘"></a>4장 강화학습 기초 3: 강화학습 알고리즘</h2><p>정책 이터레이션과 가치 이터레이션은 살사로 발전한다. <code>살사</code>부터 강화학습이라 부른다. 각 이터레이션들이 어떻게 살사로 발전하는지, 살사와 같은 강화학습 알고리즘을 통해 에이전트가 어떻게 학습하는지 알아보자.</p>
+<h3 id="살사-SARSA"><a href="#살사-SARSA" class="headerlink" title="살사(SARSA)"></a>살사(SARSA)</h3><p>정책 이터레이션은 <strong>정책 평가</strong> 와 <strong>정책 발전</strong> 을 번갈아 가며 실행하는 과정이다. 벨만 기대 방정식을 이용해 현재의 정책에 대한 참 가치함수를 구하는 것이 정책 평가이며, 구한 가치함수에 따라 정책을 업데이트 하는 것이 정책 발전이다. 이러한 정책 이터레이션을 <code>GPI(Generalized Policy Iteration)</code>이라고 한다. GPI에서는 단 한번만 정책을 평가해서 가치함수를 업데이트하고 바로 정책을 발전하는 과정을 반복한다.</p>
+<p>GPI에서는 벨만 방정식에 따라 정책을 평가한다. 그 대신 강화학습에서는 <strong>몬테카를로 예측</strong> 이나 <strong>시간차 예측</strong> 을 사용하여 정책을 평가한다. <strong>GPI의 탐욕 정책 발전</strong> 은 주어진 가치함수에 대해 모든 상태에 대한 정책을 얻는 과정이다. <strong>시간차 방법</strong> 에서는 타임스텝마다 가치함수를 현재 상태에 대해서만 업데이트 하므로, 모든 상태의 정책을 발전시킬 수 없다.</p>
+<p>때문에 시간차(Temporal-Difference) 방법에서는 가치 이터레이션의 방법을 도입한다. 가치 이터레이션에서는 정책 이터레이션과는 달리 <strong>별도의 정책 없이 가치함수에 대해 탐욕적으로 움직일 뿐</strong> 이었고, 시간차 방법에서도 에이전트는 <strong>현재 상태에서 가장 큰 가치를 지니는 행동을 선택하는</strong> <code>탐욕 정책</code> 을 사용한다. 시간차 예측과 탐욕 정책이 합쳐진 것을 <code>시간차 제어(Temporal-difference control)</code>이라고 한다. 이들의 관계를 나타낸 것이 아래의 그림이다.</p>
+<div class="image-box">
+                <img src="/image/post_image/20210127/temporal.png" style="width:320px; height:130px" alt="GPI와 시간차 제어의 관계" title="" class="">
+                <p class="image-box-title">GPI와 시간차 제어의 관계</p>
+            </div>
+
+<p>탐욕 정책에서 <strong>다음 상태의 가치함수를 보고 판단하는 것이 아닌 현재 상태의 큐함수를 보고 판단한다면 환경의 모델을 몰라도 된다.</strong> (GPI의 탐욕 정책 발전에 따르면 $E_\pi [R_{t+1}+ \gamma v_\pi(S_{t+1})]$을 계산하기 위해서 상태 변환 확률인 $P_{ss’}^a$ 를 알아야 했다. 행동을 했을 때, 이상한데로 튈 확률이랄까나. 요녀석은 환경의 일부로서 현실에서는 알기가 매우매우 힘든 정보이기 때문에, 이 녀석 없이 행동을 선택하게 하는 것이 필요하다!)시간차 제어에서는 아래의 <strong>큐함수를 사용한 탐욕 정책</strong> 을 통해 행동을 선택한다.</p>
+<p>$$\pi (s) = argmax_{a \in A} \, Q(s,a)$$</p>
+<p>큐함수에 따라서 행동을 선택하려면 에이전트는 가치함수가 아닌 큐함수의 정보를 알아야 하므로, 업데이트의 대상은 가치함수가 아닌 큐함수가 되어야 한다. 때문에 <code>시간차 제어</code>의 식은 다음과 같다.</p>
+<p>$$Q(S_t, A_t) \leftarrow Q(S_t, A_t) + \alpha (R_{t+1} + \gamma Q(S_{t+1}, A_{t+1}) - Q(S_t, A_t))$$</p>
+<p>시간차 제어에서 큐함수를 업데이트 하려면 샘플이 필요하다. 시간차 제어에서는 $[S_t, A_t,R_{t+1}, S_{t+1}, A_{t+1}]$을 샘플로 사용한다. 흐름을 한번 살펴보면</p>
+<ul>
+<li>에이전트는 $S_t$에서 탐욕 정책에 따라 $A_t$를 선택</li>
+<li>환경은 $R_{t+1}$을 제공하고 다음상태 $S_{t+1}$을 제공</li>
+<li>에이전트는 $S_{t+1}$에서 탐욕 정책에 따라 $A_{t+1}$을 선택</li>
+</ul>
+<p>샘플의 형태 때문에 시간차 제어를 다른말로 <code>살사(SARSA)</code>라고 부른다. 살사는 현재 가지고 있는 <strong>큐함수</strong> 를 토대로 샘플을 탐욕 정책으로 모으고, 그 샘플로 방문한 큐함수를 업데이트하는 과정을 반복하는 것이다.</p>
+<p>초기의 에이전트에게 탐욕정책은 <strong>잘못된 학습으로 가게할 가능성이 크다.</strong> 때문에, 큐함수가 잘못된 값에 수렴하는 것을 막기 위해 에이전트가 충분히 다양한 경험을 하도록 해야하고, 이를 위해 <strong>$\epsilon$-탐욕 정책</strong> 을 사용한다. 간단한 아이디어인데 $\epsilon$의 확률로 탐욕적이지 않은 행동을 선택하게 하는 것이다.<br>(물론 $\epsilon$-탐욕 정책은 최적 큐함수를 찾았다 하더라도 <strong>$\epsilon$의 확률로 계속 탐험한다는 한계</strong> 가 있다. 따라서 학습을 진행함에 따라 $\epsilon$값을 감소시키는 방법을 사용할 수도 있다.)</p>
+<p>$$\pi(s) = \begin{cases}<br>\displaystyle a^* = argmax_{a \in A} \, Q(s,a), \,\,\, 1-\epsilon의\,확률로 \\<br>\displaystyle a \neq a^*, \,\,\,\,\, \epsilon의\,확률로<br>\end{cases}$$</p>
+<p>정리하자면, 살사는 간단히 두 단계로 생각하면 된다.</p>
+<ol>
+<li>$\epsilon$-탐욕 정책을 통해 샘플 $[S_t, A_t,R_{t+1}, S_{t+1}, A_{t+1}]$을 획득</li>
+<li>획득한 샘플로 다음 식을 통해 큐함수 $Q(S_t, A_t)$를 업데이트</li>
+</ol>
+<p>$$Q(S_t, A_t) \leftarrow Q(S_t, A_t) + \alpha (R_{t+1} + \gamma Q(S_{t+1}, A_{t+1}) - Q(S_t, A_t))$$</p>
+<p>이제 코드를 한번 살펴보자</p>
+<h3 id="살사-코드-설명"><a href="#살사-코드-설명" class="headerlink" title="살사 코드 설명"></a>살사 코드 설명</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">SARSAgent</span>:</span></span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">__init__</span>(<span class="params">self,actions</span>):</span></span><br><span class="line">    self.actions = actions <span class="comment"># 에이전트가 할 수 있는 행동 [상,하,좌,우]</span></span><br><span class="line">    self.step_size = <span class="number">0.01</span>      <span class="comment"># α</span></span><br><span class="line">    self.discount_factor = <span class="number">0.9</span> <span class="comment"># γ</span></span><br><span class="line">    self.epsilon = <span class="number">0.1</span>         <span class="comment"># ϵ</span></span><br><span class="line">    self.q_table  = defaultdict(<span class="keyword">lambda</span>: [<span class="number">0.0</span>, <span class="number">0.0</span>, <span class="number">0.0</span>, <span class="number">0.0</span>])</span><br></pre></td></tr></table></figure>
+
+<p>init을 통해 학습에 필요한 변수들을 할당해 주었다. 추가로 <strong>SARSAgent</strong> 에 어떤 함수가 필요한지를 알기 위해서는 에이전트가 환경과 어떻게 상호작용하고 학습하는지를 알아야 한다. 에이전트는 다음과 같은 순서로 상호작용한다.</p>
+<ol>
+<li>현재 상태에서 $\epsilon$-탐욕 정책에 따라 행동을 선택</li>
+<li>선택한 행동으로 환경에서 한 타임스텝을 진행</li>
+<li>환경으로부터 보상과 다음 상태를 받음</li>
+<li>다음 상태에서 $\epsilon$-탐욕 정책에 따라 다음 행동을 선택</li>
+<li>(s,a,r,s’,a’)을 통해 큐함수 업데이트</li>
+</ol>
+<p>get_action 함수는 $\epsilon$-탐욕 정책에 따라 state를 입력으로 받아 action을 반환한다. q_table에 따라서 탐욕적으로 행동을 선택하며 이때 $\epsilon$의 확률을 반영하여 무작위 행동을 반환하기도 한다.</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 입실론 탐욕 정책에 따라서 행동을 반환</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">get_action</span>(<span class="params">self, state</span>):</span></span><br><span class="line">    <span class="keyword">if</span> np.random.rand() &lt; self.epsilon:</span><br><span class="line">        <span class="comment"># 무작위 행동 반환</span></span><br><span class="line">        action = np.random.choice(self.actions)</span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        <span class="comment"># 큐함수에 따른 행동 반환</span></span><br><span class="line">        state = str(state)</span><br><span class="line">        q_list = self.q_table[state]</span><br><span class="line">        action = arg_max(q_list)</span><br><span class="line">    <span class="keyword">return</span> action</span><br></pre></td></tr></table></figure>
+
+<p>현재 상태와 다음 상태에서의 행동을 선택해서 샘플(s,a,r,s’,a’)을 얻으면 에이전트는 학습을 진행한다. 즉 아래의 식의 역할을 하는 함수는 learn이며 코드는 다음과 같다.(굉장히 직관적이다!)</p>
+<p>$$Q(S_t, A_t) \leftarrow Q(S_t, A_t) + \alpha (R_{t+1} + \gamma Q(S_{t+1}, A_{t+1}) - Q(S_t, A_t))$$</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># &lt;s, a, r, s&#x27;, a&#x27;&gt;의 샘플로부터 큐함수를 업데이트</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">learn</span>(<span class="params">self, state, action, reward, next_state, next_action</span>):</span></span><br><span class="line">    state, next_state = str(state), str(next_state)</span><br><span class="line">    current_q = self.q_table[state][action]</span><br><span class="line">    next_state_q = self.q_table[next_state][next_action]</span><br><span class="line">    td = reward + self.discount_factor * next_state_q - current_q</span><br><span class="line">    new_q = current_q + self.step_size * td</span><br><span class="line">    self.q_table[state][action] = new_q</span><br></pre></td></tr></table></figure>
+
+<p>get_action과 learn 함수를 통해 에이전트는 메인 루프에서 다음과 같이 환경과 상호작용한다.</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 행동을 위한 후 다음상태 보상 에피소드의 종료 여부를 받아옴</span></span><br><span class="line">next_state, reward, done = env.step(action)</span><br><span class="line"><span class="comment"># 다음 상태에서의 다음 행동 선택</span></span><br><span class="line">next_action = agent.get_action(next_state)</span><br><span class="line"><span class="comment"># &lt;s,a,r,s&#x27;,a&#x27;&gt;로 큐함수를 업데이트</span></span><br><span class="line">agent.learn(state, action, reward, next_state, next_action)</span><br><span class="line"></span><br><span class="line">state = next_state</span><br><span class="line">action = next_action</span><br></pre></td></tr></table></figure>
+
+<h3 id="살사의-한계"><a href="#살사의-한계" class="headerlink" title="살사의 한계"></a>살사의 한계</h3><p>살사에서는 충분한 <strong>탐험(Exploration)</strong> 을 하기 위해 $\epsilon$-탐욕 정책을 사용했다. 그런데 다음의 경우를 한번 생각해보자.</p>
+<div class="image-box">
+                <img src="/image/post_image/20210127/limitation.png" style="width:350px; height:350px" alt="살사의 학습과정 중 한순간" title="" class="">
+                <p class="image-box-title">살사의 학습과정 중 한순간</p>
+            </div>
+
+<p>초기 에이전트가 만약 s에서 a라는 행동을 하고 다음 행동인 a’은 탐험을 통해서 가게 되었다고 생각해보자. 그럼 자연스럽게 초기 에이전트는 Q(s,a) 값을 낮출 것이고 이에 따라 s에서 아래로 이동하는 행동이 안좋다고 판단할 것이다. 결국 에이전트가 특정 state에 <strong>갇혀버리는 현상</strong> 이 발생한다. 이렇게 자신이 행동한 대로 학습하는 것을 <strong>On-Policy 시간차 제어</strong> 라고 한다. 이러한 딜레마를 해결하기 위해 사용하는 것이 바로 <strong>오프폴리시 시간차 제어</strong> , <code>큐러닝</code> 이다.</p>
+<h3 id="큐러닝"><a href="#큐러닝" class="headerlink" title="큐러닝"></a>큐러닝</h3><p>큐러닝의 아이디어는 간단하다. <strong>오프폴리시</strong> 의 말 그대로 현재 행동하는 정책과는 독립적으로 학습한다는 것이다. 즉, <strong>행동하는 정책과 학습하는 정책을 따로 분리</strong> 한다. 이게 무슨 말일까? 예시로서 이해해보자.</p>
+<p>에이전트가 현재 상황 $s$에서 행동 $a$를 $\epsilon$-탐욕 정책에 따라 선택했다고 하자. 그러면 에이전트는 환경으로부터 보상 $r$을 받고 다음 상태 $s’$을 받는다. 여기까지는 살사와 동일하다. 하지만 살사에서는 다음 상태 $s’$에서 또다시 $\epsilon$-탐욕 정책에 따라 다음 행동을 선택한 후에 그것을 학습에 샘플로 사용한다. <strong>큐러닝</strong> 에서는 에이전트가 다음 상태 $s’$을 알게 되면 <strong>그 상태($s’$)에서 가장 큰 큐함수를 현재 큐함수의 업데이트에 사용한다.</strong> 살사의 학습과정과 다르게 큐러닝은 아래와 같이 학습한다.</p>
+<div class="image-box">
+                <img src="/image/post_image/20210127/qlearning.png" style="width:350px; height:350px" alt="큐러닝의 학습과정 중 한순간" title="" class="">
+                <p class="image-box-title">큐러닝의 학습과정 중 한순간</p>
+            </div>
+
+<p>큐러닝은 실제 다음 상태 $s’$에서 다음 행동을 해보는 것이 아니라 다음 상태 $s’$에서 가장 큰 큐함수를 가지고 업데이트 하는 것이다. 자세히 살펴보면 벨만 최적 방정식과 비슷하다는 생각이 들 것이다.</p>
+<p>$$Q(S_t, A_t) \leftarrow Q(S_t, A_t) + \alpha (R_{t+1} + \gamma max_{a’} Q(S_{t+1}, a’) - Q(S_t, A_t))$$</p>
+<p>벨만 최적 방정식은 아래의 수식과 같은데 큐러닝에서 보상 $R_{t+1}$은 실제 에이전트가 환경에게서 받는 값이므로 기댓값을 빼면 동일하다.</p>
+<p>$$q^*(s,a) = E[R_{t+1} + \gamma max_{a’} q^*(S_{t+1},a’) | S_t=s, A_t=a]$$</p>
+<ul>
+<li><code>벨만 기대 방정식</code> –&gt; <code>정책 이터레이션</code> –&gt; <code>살사</code></li>
+<li><code>벨만 최적 방정식</code> –&gt; <code>가치 이터레이션</code> –&gt; <code>큐러닝</code></li>
+</ul>
+<p>큐러닝은 샘플로서 [s,a,r,s’]을 사용하며 실제 환경에서 행동을 하는 정책과 큐함수를 업데이트할 때 사용하는 정책이 다르기 때문에 큐러닝을 <code>오프폴리시</code>라고 한다. 다른 오프폴리시 강화학습과 달리 큐함수가 간단하기 떄문에 이후에 많은 강화학습 알고리즘의 토대가 되었다.</p>
+<h3 id="큐러닝-코드-설명"><a href="#큐러닝-코드-설명" class="headerlink" title="큐러닝 코드 설명"></a>큐러닝 코드 설명</h3><p>큐러닝 코드에서 살사 코드에서와 다른 점은 에이전트가 샘플을 가지고 학습하는 부분이다.</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># &lt;s, a, r, s&#x27;&gt; 샘플로부터 큐함수 업데이트</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">learn</span>(<span class="params">self, state, action, reward, next_state</span>):</span></span><br><span class="line">        state, next_state = str(state), str(next_state)</span><br><span class="line">        q_1 = self.q_table[state][action]</span><br><span class="line">        <span class="comment"># 벨만 최적 방정식을 사용한 큐함수의 업데이트</span></span><br><span class="line">        q_2 = reward + self.discount_factor * max(self.q_table[next_state])</span><br><span class="line">        self.q_table[state][action] += self.step_size * (q_2 - q_1)</span><br></pre></td></tr></table></figure>
+
+<p>learn 코드는 위에서 살펴본 큐러닝의 업데이트 식을 구현한 것이다. self.q_table[next_state]에서 max 값을 업데이트에 사용하기 때문에 오프폴리시가 됩니다. 또한 max값을 취하면 되기 때문에 다음 상태에서의 행동을 알 필요가 없다.</p>
+<p>살사와 큐러닝의 차이는 <strong>온폴리시와 오프폴리시</strong> 의 차이라고 볼 수 있다. 온폴리시인 살사는 <strong>지속적인 탐험</strong> 으로인해 그리드월드 예제에서 왼쪽 위에 갇히곤 하지만 큐러닝은 현재 행동하는 정책과는 독립적으로 학습을 진행하기 때문에 갇히지 않고 벗어나는 정책을 학습할 수 있다.</p>
+<h3 id="정리"><a href="#정리" class="headerlink" title="정리"></a>정리</h3><ul>
+<li><code>몬테카를로 예측</code>: 기댓값을 샘플링을 통한 평균으로 대체<br>$$V(s) \leftarrow V(s) + \alpha (G(s) - V(s))$$</li>
+<li><code>시간차 예측</code>: 몬테카를로 예측과는 달리 타임스텝마다 큐함수를 업데이트<br>$$V(S_t) \leftarrow V(S_t) + \alpha (R_{t+1}+ \gamma V(S_{t+1}) - V(S_t))$$</li>
+<li><code>살사(SARSA)</code>: 강화학습 제어에서 큐함수를 사용하며 하나의 샘플로 (s,a,r,s’,a’)을 사용하는 <strong>시간차 제어</strong><br>$$Q(S_t, A_t) \leftarrow Q(S_t, A_t) + \alpha (R_{t+1} + \gamma Q(S_{t+1}, A_{t+1}) - Q(S_t, A_t))$$</li>
+<li><code>큐러닝(Q-learning)</code>: 오프폴리시 강화학습으로서 행동선택은 <strong>$\epsilon$-탐욕 정책</strong> , 큐함수의 업데이트에는 <strong>벨만 최적 방정식</strong> 사용</li>
+</ul>
+<p>$$Q(S_t, A_t) \leftarrow Q(S_t, A_t) + \alpha (R_{t+1} + \gamma max_{a’} Q(S_{t+1}, a’) - Q(S_t, A_t))$$</p>
+<h3 id="4장-한줄평"><a href="#4장-한줄평" class="headerlink" title="4장 한줄평"></a>4장 한줄평</h3><blockquote>
+<p>절반을 넘겼으니 꼭 끝까지 가봅시다</p>
+</blockquote>
+
+        </div>
+
+        
+
+        <!-- 댓글부분 -->
+        <br /><br />
+        <div id="disqus_thread"></div>
+        <script>
+            /**
+            *  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+            *  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables*/
+            /*
+            var disqus_config = function () {
+            this.page.url = PAGE_URL;  // Replace PAGE_URL with your page's canonical URL variable
+            this.page.identifier = PAGE_IDENTIFIER; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+            };
+            */
+            (function() { // DON'T EDIT BELOW THIS LINE
+            var d = document, s = d.createElement('script');
+            s.src = 'https://longshiine.disqus.com/embed.js';
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+            })();
+        </script>
+        <noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+        <script id="dsq-count-scr" src="//longshiine.disqus.com/count.js" async></script>                  
+        <br /><br />
+
+        <section class="post-tags">
+            <div>
+                <!-- <span>Tag(s):</span>
+                <span class="tag">
+                    
+                    
+                        <a href="/tags/DeepLearning/"># DeepLearning</a>
+                    
+                        <a href="/tags/ReinforcementLearning/"># ReinforcementLearning</a>
+                    
+                        <a href="/tags/SARSA/"># SARSA</a>
+                    
+                        <a href="/tags/QLearning/"># QLearning</a>
+                    
+                        
+                </span> -->
+            </div>
+            <div>
+                <a href="javascript:window.history.back();">back</a>
+                <span>· </span>
+                <a href="/">home</a>
+            </div>
+        </section>
+        <section class="post-nav">
+            
+            
+            <a class="next" rel="next" href="/2021/01/25/%EA%B0%95%ED%99%94%ED%95%99%EC%8A%B5-%EA%B8%B0%EC%B4%883-%EA%B0%95%ED%99%94%ED%95%99%EC%8A%B5%EA%B3%BC-%EC%A0%95%EC%B1%85%ED%8F%89%EA%B0%80/">강화학습 기초3: 강화학습과 정책평가</a>
+            
+        </section>
+
+
+    </article>
+</div>
+
+        </div>
+        <footer id="footer" class="footer">
+    <div class="copyright">
+        <span>© Jay_Kim | Powered by <a href="https://hexo.io" target="_blank">Hexo</a> & <a href="https://github.com/Siricee/hexo-theme-Chic" target="_blank">Chic</a></span>
+    </div>
+</footer>
+
+    </div>
+</body>
+</html>
