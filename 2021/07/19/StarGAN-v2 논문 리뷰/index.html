@@ -252,7 +252,7 @@
 <p>A good image-to-image translation model should learn a mapping between different visual domains while satisfying the following properties: 1) diversity of generated images and 2) scalability over multiple domains. Existing methods address either of the issues, having limited diversity or multiple models for all domains. We propose StarGAN v2, a single framework that tackles both and shows significantly improved results over the baselines. Experiments on CelebA-HQ and a new animal faces dataset (AFHQ) validate our superiority in terms of visual quality, diversity, and scalability. To better assess image-to-image translation models, we release AFHQ, high-quality animal faces with large inter- and intra-domain differences. The code, pretrained models, and dataset can be found at this https URL.</p>
 </blockquote>
 <div class="image-box">
-                <img src="/image/post_image/20210719/_2021-07-08__4.37.07.png" style="width:80%" alt="" title="" class="">
+                <img src="/image/post_image/20210719/intro.png" style="width:100%" alt="" title="" class="">
                 <p class="image-box-title"></p>
             </div>
 
@@ -336,7 +336,7 @@
 </li>
 <li><p>아래의 Figure 2가 전체 프레임워크의 overview를 보여준다. 총 4개의 모듈로 구성된다.</p>
   <div class="image-box">
-                <img src="/image/post_image/20210719/intro.png" style="width:80%" alt="" title="" class="">
+                <img src="/image/post_image/20210719/1.png" style="width:100%" alt="" title="" class="">
                 <p class="image-box-title"></p>
             </div>
 
@@ -424,39 +424,30 @@
 <li>StarGAN-v2의 components들(각각의 모듈들)을 실험했고, 3가지의 leading baseline들과 비교했다.</li>
 <li>모든 실험은 unseen data에 대해서 이루어졌음</li>
 </ul>
-<blockquote>
-<p><strong>Baselines</strong></p>
-</blockquote>
-<ul>
+<h4 id="Baselines"><a href="#Baselines" class="headerlink" title="Baselines"></a><strong>Baselines</strong></h4><ul>
 <li>MUNIT, DRIT, MSGAN 을 baseline으로 삼았고, 이들은 <strong>two domain간의 multi-modal mapping</strong>을 수행함.</li>
 <li>Multi-domain에 대한 비교를 위해 이들을 각각의 이미지 domain pairs에 대해 여러번 학습시킴</li>
 <li>StarGAN이랑도 비교했는데(v1), 이 모델은 multiple domain에 대한 mapping을 single generator로 배움</li>
 </ul>
-<blockquote>
-<p><strong>Datasets</strong></p>
-</blockquote>
-<ul>
+<h4 id="Datasets"><a href="#Datasets" class="headerlink" title="Datasets"></a><strong>Datasets</strong></h4><ul>
 <li>CelebA-HQ와 AFHQ data set에 대해 평가</li>
 <li>CelebA-HQ 데이터 셋을 male, female의 두가지 도메인으로 나누었음.</li>
 <li>domain-label을 제외하고는 추가적인 정보(e.g. facial attributes of CelebA)를 사용하지 않았으며, 모델로 하여금 비지도적으로 style들에 대한 정보를 배우도록 했음.</li>
 <li>공정한 비교를 위해 훈련시 이미지를 256X256 으로 resize했고, 이 사이지는 baseline들의 최대 resolution 사이즈임.</li>
 </ul>
-<blockquote>
-<p><strong>Evaluation metrics</strong></p>
-</blockquote>
-<ul>
+<h4 id="Evaluation-metrics"><a href="#Evaluation-metrics" class="headerlink" title="Evaluation metrics"></a><strong>Evaluation metrics</strong></h4><ul>
 <li><p>우선 평가해야 할 metric은 두 가지인데,</p>
 <pre><code>1. visual quality  —&gt; **FID**(Frechet Inception distance): distance between two distributions of real and generated images (lower is better)</code></pre>
 <p>  <strong>Q. FID가 visual quality에 대한 지표도 포함하는가..?</strong></p>
   <div class="image-box">
-                <img src="/image/post_image/20210719/_2021-07-18__3.07.09.png" style="width:80%" alt="" title="" class="">
+                <img src="/image/post_image/20210719/2.png" style="width:100%" alt="" title="" class="">
                 <p class="image-box-title"></p>
             </div>
 
 <ol>
 <li><p>diversity of generated images —&gt; <strong>LPIPS</strong>(Learned Perceptual Image Patch Similarity): (higher lis better)</p>
  <div class="image-box">
-                <img src="/image/post_image/20210719/_2021-07-18__12.05.56.png" style="width:80%" alt="" title="" class="">
+                <img src="/image/post_image/20210719/9.png" style="width:80%" alt="" title="" class="">
                 <p class="image-box-title"></p>
             </div>
 </li>
@@ -464,7 +455,7 @@
 </li>
 <li><p>위 표는 StarGAN-v1에 v2의 모듈 혹은 기법들을 한 개씩 추가하며 measure한 것!</p>
   <div class="image-box">
-                <img src="/image/post_image/20210719/_2021-07-18__12.07.02.png" style="width:80%" alt="" title="" class="">
+                <img src="/image/post_image/20210719/10.png" style="width:80%" alt="" title="" class="">
                 <p class="image-box-title"></p>
             </div>
 </li>
@@ -508,7 +499,7 @@
 <h3 id="Second"><a href="#Second" class="headerlink" title="Second"></a><strong>Second</strong></h3><p>기존 baseline들은 style space를 fixed Gaussian distribution을 따른다는 가정을 했으나,</p>
 <p>StarGAN-v2에서는 StyleGAN의 insight에 따라, transformation에 대해 배운 style space에서 생성해냄</p>
 <div class="image-box">
-                <img src="/image/post_image/20210719/_2021-07-18__3.52.55.png" style="width:80%" alt="" title="" class="">
+                <img src="/image/post_image/20210719/3.png" style="width:80%" alt="" title="" class="">
                 <p class="image-box-title"></p>
             </div>
 
@@ -540,12 +531,12 @@
 <li>set biases to zero —&gt; except for biases associated with scaling vector of AdaIN(set to one)</li>
 </ul>
 <h3 id="E-Network-architecture"><a href="#E-Network-architecture" class="headerlink" title="E. Network architecture"></a>E. Network architecture</h3><h4 id="Generator"><a href="#Generator" class="headerlink" title="Generator"></a><strong>Generator</strong></h4><div class="image-box">
-                <img src="/image/post_image/20210719/_2021-07-18__5.41.46.png" style="width:80%" alt="" title="" class="">
+                <img src="/image/post_image/20210719/4.png" style="width:60%" alt="" title="" class="">
                 <p class="image-box-title"></p>
             </div>
 
 <h4 id="Mapping-Network"><a href="#Mapping-Network" class="headerlink" title="Mapping Network"></a><strong>Mapping Network</strong></h4><div class="image-box">
-                <img src="/image/post_image/20210719/_2021-07-18__5.48.09.png" style="width:80%" alt="" title="" class="">
+                <img src="/image/post_image/20210719/5.png" style="width:60%" alt="" title="" class="">
                 <p class="image-box-title"></p>
             </div>
 
@@ -561,7 +552,7 @@
 <p>—&gt; pixel normalization을 latent code에 적용하지 않았다.(model performance를 올리지 못하는 것으로 밝혀짐)</p>
 <p>—&gt; feture normalization도 시도해봤으나, 이도 잘 안되는 것으로 파악</p>
 <h4 id="Style-encoder"><a href="#Style-encoder" class="headerlink" title="Style encoder"></a><strong>Style encoder</strong></h4><div class="image-box">
-                <img src="/image/post_image/20210719/_2021-07-18__8.54.57.png" style="width:80%" alt="" title="" class="">
+                <img src="/image/post_image/20210719/6.png" style="width:60%" alt="" title="" class="">
                 <p class="image-box-title"></p>
             </div>
 
@@ -586,7 +577,7 @@
 <h1 id="Fine-Tuning-관련"><a href="#Fine-Tuning-관련" class="headerlink" title="Fine Tuning 관련"></a>Fine Tuning 관련</h1><ul>
 <li><p>Azure V100 x 8개</p>
   <div class="image-box">
-                <img src="/image/post_image/20210719/_2021-07-18__9.46.30.png" style="width:80%" alt="" title="" class="">
+                <img src="/image/post_image/20210719/7.png" style="width:100%" alt="" title="" class="">
                 <p class="image-box-title"></p>
             </div>
 
@@ -594,7 +585,7 @@
 </li>
 <li><p>V100 else</p>
   <div class="image-box">
-                <img src="/image/post_image/20210719/_2021-07-18__9.47.56.png" style="width:80%" alt="" title="" class="">
+                <img src="/image/post_image/20210719/8.png" style="width:100%" alt="" title="" class="">
                 <p class="image-box-title"></p>
             </div></li>
 </ul>
