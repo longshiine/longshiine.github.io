@@ -395,7 +395,7 @@
 </ul>
 <p>$$L_{ds} = E_{x, \tilde{y}, z_1, z_2 } [\parallel G(x, \tilde{s}_1) - G(x, \tilde{s}_2)\parallel_1]$$</p>
 <ul>
-<li>F가 생성하는 target style codes $\tilde{s}<em>1$ 와 $\tilde{s}_2$ 는 $\tilde{S}_i = F</em>{\tilde{y}}(z_i)$ for $i \in {1,2 }$ 에서 비롯된다.</li>
+<li>F가 생성하는 target style codes $\tilde{s}_1$ 와 $\tilde{s}_2$ 는 $\tilde{S}_i = F_\tilde{y}(z_i)$ for $i \in {1,2 }$ 에서 비롯된다.</li>
 <li>regularization term을 최대화 하는 것은 Generator가 diverse images를 생성하기 위해 image 공간을 explore하고 의미있는 style feature를 찾게한다.</li>
 <li>주의해야할 것은 기존의 form에서 denominator(분모)의 $\parallel z_1 - z_2 \parallel_1$ 가 조금의 차이만 발생해도, loss를 크게 increase하는데, 이는 training을 불안정하게 만듬</li>
 <li>때문에 논문에서는 denominator part를 제거하고, 안정적인 training을 위한 새로운 equation을 고안함 —&gt; but same intuition</li>
