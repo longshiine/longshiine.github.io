@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="kor">
+<head>
+    <meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta name="author" content="Jay_Kim">
+
+
+    <meta name="subtitle" content="Jay's blog">
+
+
+    <meta name="description" content="blog">
+
+
+    <meta name="keywords" content="deeplearning, blog, book, life, social">
+
+
+<title>StarGAN-v2 논문 리뷰 | Jaylog</title>
+
+
+
+    <link rel="icon" href="/favicon.ico">
+
+
+
+
+    <!-- stylesheets list from _config.yml -->
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+
+
+
+    <!-- scripts list from _config.yml -->
+    
+    <script src="/js/script.js"></script>
+    
+    <script src="/js/tocbot.min.js"></script>
+    
+
+
+
+    
+    
+        
+            <!-- MathJax配置，可通过单美元符号书写行内公式等 -->
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+    "HTML-CSS": {
+        preferredFont: "TeX",
+        availableFonts: ["STIX","TeX"],
+        linebreaks: { automatic:true },
+        EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50)
+    },
+    tex2jax: {
+        inlineMath: [ ["$", "$"], ["\\(","\\)"] ],
+        processEscapes: true,
+        ignoreClass: "tex2jax_ignore|dno",
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+    },
+    TeX: {
+        equationNumbers: { autoNumber: "AMS" },
+        noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } },
+        Macros: { href: "{}" }
+    },
+    messageStyle: "none"
+    });
+</script>
+<!-- 给MathJax元素添加has-jax class -->
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+<!-- 通过连接CDN加载MathJax的js代码 -->
+<script type="text/javascript" async
+        src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML">
+</script>
+
+
+        
+    
+
+
+<meta name="generator" content="Hexo 5.0.0"></head>
+<body>
+    <div class="wrapper">
+        <header>
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-header header-logo"><a href="/">Jay_log</a></div>
+            <div class="menu navbar-right">
+                
+                    <a class="menu-item" href="/archives">Posts</a>
+                
+                    <a class="menu-item" href="/category">Categories</a>
+                
+                    <a class="menu-item" href="/tag">Tags</a>
+                
+                    <a class="menu-item" href="/about">About</a>
+                
+                <input id="switch_default" type="checkbox" class="switch_default">
+                <label for="switch_default" class="toggleBtn"></label>
+            </div>
+        </div>
+    </nav>
+
+    
+    <nav class="navbar-mobile" id="nav-mobile">
+        <div class="container">
+            <div class="navbar-header">
+                <div>
+                    <a href="/">Jay_log</a><a id="mobile-toggle-theme">·&nbsp;Light</a>
+                </div>
+                <div class="menu-toggle" onclick="mobileBtn()">&#9776; Menu</div>
+            </div>
+            <div class="menu" id="mobile-menu">
+                
+                    <a class="menu-item" href="/archives">Posts</a>
+                
+                    <a class="menu-item" href="/category">Categories</a>
+                
+                    <a class="menu-item" href="/tag">Tags</a>
+                
+                    <a class="menu-item" href="/about">About</a>
+                
+            </div>
+        </div>
+    </nav>
+
+</header>
+<script>
+    var mobileBtn = function f() {
+        var toggleMenu = document.getElementsByClassName("menu-toggle")[0];
+        var mobileMenu = document.getElementById("mobile-menu");
+        if(toggleMenu.classList.contains("active")){
+           toggleMenu.classList.remove("active")
+            mobileMenu.classList.remove("active")
+        }else{
+            toggleMenu.classList.add("active")
+            mobileMenu.classList.add("active")
+        }
+    }
+</script>
+        <div class="main">
+            <div class="container">
+    
+    
+        <div class="post-toc">
+    <div class="tocbot-list">
+    </div>
+    <div class="tocbot-list-menu">
+        <a class="tocbot-toc-expand" onclick="expand_toc()">Expand all</a>
+        <a onclick="go_top()">Back to top</a>
+        <a onclick="go_bottom()">Go to bottom</a>
+    </div>
+</div>
+
+<script>
+    document.ready(
+        function () {
+            tocbot.init({
+                tocSelector: '.tocbot-list',
+                contentSelector: '.post-content',
+                headingSelector: 'h1, h2, h3, h4, h5',
+                collapseDepth: 1,
+                orderedList: false,
+                scrollSmooth: true,
+            })
+        }
+    )
+
+    function expand_toc() {
+        var b = document.querySelector(".tocbot-toc-expand");
+        tocbot.init({
+            tocSelector: '.tocbot-list',
+            contentSelector: '.post-content',
+            headingSelector: 'h1, h2, h3, h4, h5',
+            collapseDepth: 6,
+            orderedList: false,
+            scrollSmooth: true,
+        });
+        b.setAttribute("onclick", "collapse_toc()");
+        b.innerHTML = "Collapse all"
+    }
+
+    function collapse_toc() {
+        var b = document.querySelector(".tocbot-toc-expand");
+        tocbot.init({
+            tocSelector: '.tocbot-list',
+            contentSelector: '.post-content',
+            headingSelector: 'h1, h2, h3, h4, h5',
+            collapseDepth: 1,
+            orderedList: false,
+            scrollSmooth: true,
+        });
+        b.setAttribute("onclick", "expand_toc()");
+        b.innerHTML = "Expand all"
+    }
+
+    function go_top() {
+        window.scrollTo(0, 0);
+    }
+
+    function go_bottom() {
+        window.scrollTo(0, document.body.scrollHeight);
+    }
+
+</script>
+    
+
+    
+    <article class="post-wrap">
+        <header class="post-header">
+            <h1 class="post-title">StarGAN-v2 논문 리뷰</h1>
+            
+                <div class="post-meta">
+                    
+                        Author: <a itemprop="author" rel="author" href="/">Jay_Kim</a>
+                    
+
+                    
+                        <span class="post-time">
+                        Date: <a href="#">July 19, 2021&nbsp;&nbsp;14:26:32</a>
+                        </span>
+                    
+
+                    
+                        <span class="post-category">
+                    Category:
+                            
+                                <a href="/categories/DeepLearning/">DeepLearning</a>
+                            
+                        </span>
+                    
+                </div>
+            
+        </header>
+
+        <div class="post-content">
+            <h1 id="StarGAN-v2"><a href="#StarGAN-v2" class="headerlink" title="StarGAN-v2"></a>StarGAN-v2</h1><p><strong>Github:</strong> <a target="_blank" rel="noopener" href="https://github.com/clovaai/stargan-v2">https://github.com/clovaai/stargan-v2</a></p>
+<p><strong>Paper:</strong>  <a target="_blank" rel="noopener" href="https://arxiv.org/abs/1912.01865">https://arxiv.org/abs/1912.01865</a></p>
+<p><a target="_blank" rel="noopener" href="https://arxiv.org/search/cs?searchtype=author&query=Choi,+Y">Yunjey Choi</a>, <a target="_blank" rel="noopener" href="https://arxiv.org/search/cs?searchtype=author&query=Uh,+Y">Youngjung Uh</a>, <a target="_blank" rel="noopener" href="https://arxiv.org/search/cs?searchtype=author&query=Yoo,+J">Jaejun Yoo</a>, <a target="_blank" rel="noopener" href="https://arxiv.org/search/cs?searchtype=author&query=Ha,+J">Jung-Woo Ha</a></p>
+<p><a href="/image/post_image/20210719/StarGAN-v2.pdf">StarGAN-v2.pdf</a></p>
+<blockquote>
+<p>A good image-to-image translation model should learn a mapping between different visual domains while satisfying the following properties: 1) diversity of generated images and 2) scalability over multiple domains. Existing methods address either of the issues, having limited diversity or multiple models for all domains. We propose StarGAN v2, a single framework that tackles both and shows significantly improved results over the baselines. Experiments on CelebA-HQ and a new animal faces dataset (AFHQ) validate our superiority in terms of visual quality, diversity, and scalability. To better assess image-to-image translation models, we release AFHQ, high-quality animal faces with large inter- and intra-domain differences. The code, pretrained models, and dataset can be found at this https URL.</p>
+</blockquote>
+<p><img src="/image/post_image/20210719/_2021-07-08__4.37.07.png" alt="/image/post_image/20210719/_2021-07-08__4.37.07.png"></p>
+<h2 id="Abstract"><a href="#Abstract" class="headerlink" title="Abstract"></a>Abstract</h2><ul>
+<li><p>좋은 image-to-image translation model은 다음의 특성을 만족시킨다.</p>
+<ol>
+<li><p>생성된 이미지의 다양성</p>
+</li>
+<li><p>다양한 도메인으로의 확장성</p>
+</li>
+</ol>
+</li>
+<li><p>StarGAN-v2는 Single Framework로 이를 만족시키는데, CelebA-HQ와 AFHQ dataset을 통한 실험은이 모델이 <strong>visual quality, diversity, scalability</strong> 에 있어 superiority를 가진다는 사실을 validate 하게 한다.</p>
+</li>
+</ul>
+<h2 id="1-Introduction"><a href="#1-Introduction" class="headerlink" title="1. Introduction"></a>1. Introduction</h2><h3 id="용어정리"><a href="#용어정리" class="headerlink" title="용어정리"></a>용어정리</h3><ul>
+<li><p><strong>Domain</strong>: set of images that can be grouped as a visually distinctive category.</p>
+</li>
+<li><p><strong>Style</strong>: each image has a unique appearance</p>
+<ul>
+<li>ex) 이미지의 <strong>domain</strong>을 사람의 성별로 설정할 수 있음. 이때 <strong>style</strong>은 ****makeup, beard(턱수염), hairstyle 등을 포함한다. → 위 그림의 celebA-HG 의 예시!</li>
+</ul>
+</li>
+<li><p>이상적인 i2i 변환 방법은 각 도메인의 서로 다른 스타일을 고려하여 합성할 수 있어야 한다.</p>
+<p>  —&gt; 하지만 너무 많은 임의의 스타일과 도메인이 데이터 셋에 있기 때문에 그런 모델을 만드는 것이 어렵다..</p>
+</li>
+</ul>
+<h3 id="잠시-살펴보고-가는-쉽게-쓰여진-GAN"><a href="#잠시-살펴보고-가는-쉽게-쓰여진-GAN" class="headerlink" title="잠시 살펴보고 가는 쉽게 쓰여진 GAN"></a>잠시 살펴보고 가는 <strong>쉽게 쓰여진</strong> <strong>GAN</strong></h3><p><a target="_blank" rel="noopener" href="https://dreamgonfly.github.io/blog/gan-explained/">https://dreamgonfly.github.io/blog/gan-explained/</a></p>
+<h3 id="기존의-접근-방식들-methods"><a href="#기존의-접근-방식들-methods" class="headerlink" title="기존의 접근 방식들(methods)"></a>기존의 접근 방식들(methods)</h3><ul>
+<li><p>다른 스타일에 접근하기 위해, 많은 방법들은 low-dimentional latent code를 generator에 inject한다. —&gt; uniform or Gaussian distribution에서 랜덤하게 추출된 (100, ) 짜리 벡터 등</p>
+</li>
+<li><p>그러한 방법들의 domain-specific 디코더는 이러한 latent-vector를 이미지를 생성하는 Generator의 레시피로 사용한다.</p>
+</li>
+<li><p><strong>그러나,</strong> 이러한 method들은 2 domain간의 mapping만을 고려한다.</p>
+<p>  —&gt; <strong># of domain에 있어 not scalable</strong></p>
+<p>  —&gt; K 도메인을 학습하기 위해선 K(K-1)개의 Generator를 학습시켜야함</p>
+<p>  ⇒ 결국 practical usage가 떨어짐.</p>
+</li>
+</ul>
+<h3 id="StarGAN은-머가-달라"><a href="#StarGAN은-머가-달라" class="headerlink" title="StarGAN은? 머가 달라?"></a>StarGAN은? 머가 달라?</h3><ul>
+<li><p>Scalability에 접근하기 위해, unified framed work들이 제안되었는데, starGAN은 초기의 모델중 하나!</p>
+<p>  —&gt; Single generator를 사용하여 모든 가능한 domain의 mapping을 학습가능</p>
+</li>
+<li><p>Generator는 domain label을 추가적인 input으로 받아 상응하는 도메인으로 변환하는 것을 배움.</p>
+</li>
+<li><p>그러나, 여전히 StarGAN은 각 도메인의 deterministic mapping만을 배울 뿐,  data distribution의 multi-modal적인 특성은 포착하지 못함.</p>
+<p>  —&gt; <strong>Multi-modal</strong>: 우리의 경험은 실제로 **복합적(multimodal)**인데, 보고, 듣고, 촉감을 느끼고, 향기를 맡고, 맛을 음미하는 것이 그것이다. Modality는 어떤 일이 일어나거나 우리가 무언가를 경험하는 다양한 방식을 말한다. 그리고 이것을 활용하기 위해서는 멀티모달로 특징화 해야한다.</p>
+<p>  —&gt; <strong>Multi-modal Data:</strong> 서로 다른 형태의 정보로 이루어져 뚜렷한 특성이 구분되는 데이터 </p>
+</li>
+<li><p>이러한 한계는 각 도메인이 이미 결정된 라벨로부터 결정되는 데에서 온다.</p>
+</li>
+<li><p>Generator가 one-hot vector같은 fixed label을 input으로 받는 것을 주목하자. 그렇기에 필연적으로 각 도메인에 대해 같은 output을 낼 수 밖에 없다.</p>
+</li>
+</ul>
+<h3 id="StarGAN-v2-문제에-대한-해법"><a href="#StarGAN-v2-문제에-대한-해법" class="headerlink" title="StarGAN-v2: 문제에 대한 해법"></a>StarGAN-v2: 문제에 대한 해법</h3><ul>
+<li><p>StarGAN에서 부터 출발하여(scalability에 대한 해법), 그것의 domain label을 새롭게 고안한 domain-specific style code로 변경함(multi-modal nature 파악에 대한 해법)</p>
+<p>  —&gt; style code는 specific한 domain의 구분되는 styles를 표현가능!</p>
+</li>
+<li><p>이것을 위해 두가지 module을 도입했는데</p>
+<ol>
+<li><strong>Mapping Network:</strong> 랜덤 Gaussian Noise를 style code로 transform 하는 녀석</li>
+<li><strong>Style Encoder:</strong> 주어진 reference이미지에서 style code를 추출하는 녀석 ****</li>
+</ol>
+</li>
+<li><p>이렇게 생성된 style codes를 가지고, Generator는 성공적으로 여러 도메인의 서로 다른 이미지를 합성해내는 것을 배우게 된다!</p>
+</li>
+<li><p>논문은 우선 StarGAN-v2의 individual component들의 효과를 연구했고, <strong>style code를 활용하는 것이 실제로 효과가 있음</strong>을 보인다. (Section 3.1 에서)</p>
+</li>
+<li><p>그리고 제안한 방법(StarGAN-v2)이 multiple domain에 대해 scalable하며, visual quality와 diversity에 있어서도 이전의 방법들보다 나음을 확인했다.</p>
+</li>
+</ul>
+<h2 id="2-StarGAN-v2"><a href="#2-StarGAN-v2" class="headerlink" title="2. StarGAN v2"></a>2. StarGAN v2</h2><h3 id="2-1-Proposed-framework"><a href="#2-1-Proposed-framework" class="headerlink" title="2.1 Proposed framework"></a>2.1 Proposed framework</h3><ul>
+<li><p>X, Y를 sets of images and possible domain이라고 하자.</p>
+<p>  → X = sets of images, Y = sets of possible domain</p>
+</li>
+<li><p>이미지 x와, 임의의 도메인 y에 대해 StarGAN-v2의 목적은 <strong>single generator G</strong>가 x에 상응하는 도메인 y에 대한 구분 가능한 이미지를 생성하게 하는 것이다.</p>
+<p>  —&gt; 어떤 이미지 x가 있고, “금발” 이라는 도메인이 있을때 <strong>G</strong>가 x의 다양한 금발 버전을 만들어 낼 수 있게 하는 것</p>
+<p>  —&gt; 근데 이때 아마 위에서 얘기한 multi-modal 적인 data의 특성을 반영하기 위함의 관점에서도 style code를 domain label대신 쓰지 않을까(여성이고, 금발이며, 서양인이고 ~~ 등의 복합적인 도메인으로의 변환)</p>
+</li>
+<li><p>우리는 사전에 학습된 각 도메인의 style space 내에서 domain-specific style vectors를 생성해 내고, <strong>G</strong>로 하여금 style vector를 반영하도록 학습시킨다.</p>
+</li>
+<li><p>아래의 Figure 2가 전체 프레임워크의 overview를 보여준다. 총 4개의 모듈로 구성된다.</p>
+<p>  <img src="/image/post_image/20210719/_2021-07-16__9.34.22.png" alt="/image/post_image/20210719/_2021-07-16__9.34.22.png"></p>
+</li>
+</ul>
+<blockquote>
+<p><strong>(a)</strong> <strong>Generator</strong></p>
+</blockquote>
+<ul>
+<li><p>generator <strong>G</strong>는 input 이미지 x를 output image G(x,s)로 변환하는데 이때, mapping network <strong>F</strong> 혹은 style encoder <strong>E</strong> 중 하나를 통해 생성된 domain-specific style code <strong>s</strong>를 반영한다.</p>
+</li>
+<li><p><strong>AdaIN</strong>(Adaptive instance normalization)을 사용한다. —&gt; to inject <strong>s</strong> into <strong>G</strong></p>
+</li>
+<li><p>이 “<strong>s</strong>“가 style of specific domain y를 표현한다는 것을 발견했고, 이에 y(domain 정보)를 G에게 주지 않기 때문에 —&gt; <strong>G가 all domain의 image들을 synthesis할 수 있게 되었다!!!</strong></p>
+<p>  —&gt; domain label 대신 style code를 Generator에 input으로 줌으로서 scalability를 챙길 수 있었다!</p>
+</li>
+</ul>
+<blockquote>
+<p><strong>(b) Mapping network</strong></p>
+</blockquote>
+<ul>
+<li><p>주어진 latent(잠재) code z와 domain y에 대하여, mapping network F는 style code $s = F_y(z)$ 를 생성한다.</p>
+</li>
+<li><p><strong>F</strong>는 모든 가능한 도메인에 대한 style codes를 제공하기 위해 여러 output branch를 가진 MLP로 구성된다.</p>
+</li>
+<li><p>F는 diverse style codes 를 $z \in Z$ 와 $y \in Y$ 에서 randomly하게 sampling 하여 생성할 수 있다.</p>
+</li>
+<li><p>논문에서 보이는 multi-task architecture는 F로 하여금 효율적이고 효과적으로 모든 domain에 대한style representations 을 학습하게 한다.</p>
+<p>  —&gt; </p>
+</li>
+</ul>
+<blockquote>
+<p><strong>(c) Style encoder</strong></p>
+</blockquote>
+<ul>
+<li>주어진 image x와 상응하는 domain y에 대하여 encoder E는 style code $s = E_y(s)$를 추출한다.</li>
+<li>F와 비슷하게, E도 multi-task learning setup에서 이점이 있다. E는 different reference 이미지를 사용하여 diverse style codes를 만들어낸다.</li>
+<li>이것은 G로 하여금 reference 이미지 x의 style s를 반영하는 output image를 합성해 낼 수 있게 한다!</li>
+</ul>
+<blockquote>
+<p><strong>(d) Discriminator</strong></p>
+</blockquote>
+<ul>
+<li>D는 multiple output branches로 구성되는 multi-task discriminator이다.</li>
+<li>각각의 branch  $D_y$는 이미지 x가 domain y 에 해당하는 진짜 이미지인지, fake이미지 $G(x,s)$인지를 구분하는 binary classification을 학습한다.</li>
+</ul>
+<h3 id="2-2-Training-Objectives"><a href="#2-2-Training-Objectives" class="headerlink" title="2.2 Training Objectives"></a>2.2 Training Objectives</h3><p>주어진 이미지 $x \in X$, 그에 대한 original domain $y \in Y$ 에 대해 다음의 목적함수(objectives)를 통해 학습한다.</p>
+<blockquote>
+<p><strong>Adversarial objective</strong></p>
+</blockquote>
+<ul>
+<li><p>training 시에, 우리는 latent code $z \in Z$와 target domain $\tilde{y} \in Y$ 을 randomly sample하고, target style code $\tilde{s} = F_{\tilde{y}}(z)$ 를 생성한다.</p>
+</li>
+<li><p>Generator G는 이미지 x와 $\tilde{s}$를 input으로 받아 output image인 $G(x, \tilde{s})$를 생성하는 방법을 <strong>adversarial loss를</strong> 통해 학습한다</p>
+<p>  $$⁍$$</p>
+</li>
+<li><p>$D_{y}(.)$는 도메인 y에 상응하는 Discriminator의 output</p>
+</li>
+<li><p>mapping network F는 target domain $\tilde{y}$에 포함될 것 같은 style code<br>$\tilde{s}$ 를 생성하도록 학습이 되고, $G$는 $\tilde{s}$를 활용하여  domain $\tilde{y}$의 real image와 indistinguishable(구분불가)한 이미지 $G(x,\tilde{s})$를 생성함</p>
+</li>
+</ul>
+<blockquote>
+<p><strong>Style reconstruction</strong></p>
+</blockquote>
+<ul>
+<li><p>G는 style code $\tilde{s}$를 활용하게 하기 위해 style reconstruction loss를 사용함</p>
+<p>  $$⁍$$</p>
+</li>
+<li><p>이 objective는 여러 인코더를 사용하여 image → latent code mapping을 학습하는 이전의 접근 방식들과 유사하다.</p>
+</li>
+<li><p>주목할만한 차이점은 StarGAN-v2에서는 multiple 도메인에 대한 output을 위해  <strong>single</strong> Encoder E에 대해서만 학습한다는 것!</p>
+<p>  —&gt; 이는 앞서 style code 도입을 통해 얻을 수 있는 이점과 이어진다.</p>
+</li>
+<li><p><strong>At test time,</strong> 학습된 encoder E는 G가 input이미지를 reference image의 style을 반영하여 transform할 수 있게 만든다!</p>
+</li>
+</ul>
+<blockquote>
+<p><strong>Style diversification</strong></p>
+</blockquote>
+<ul>
+<li>Generator G가 더욱 diverse images를 만들어 낼 수 있게 하기위해, diverse sensitive loss를 통해 명시적으로 regularize(정규화)한다.</li>
+</ul>
+<p>$$⁍$$</p>
+<ul>
+<li>F가 생성하는 target style codes $\tilde{s}<em>1$ 와 $\tilde{s}_2$ 는 $\tilde{S}_i = F</em>{\tilde{y}}(z_i)$ for $i \in {1,2 }$ 에서 비롯된다.</li>
+<li>regularization term을 최대화 하는 것은 Generator가 diverse images를 생성하기 위해 image 공간을 explore하고 의미있는 style feature를 찾게한다.</li>
+<li>주의해야할 것은 기존의 form에서 denominator(분모)의 $\parallel z_1 - z_2 \parallel_1$ 가 조금의 차이만 발생해도, loss를 크게 increase하는데, 이는 training을 불안정하게 만듬</li>
+<li>때문에 논문에서는 denominator part를 제거하고, 안정적인 training을 위한 새로운 equation을 고안함 —&gt; but same intuition</li>
+</ul>
+<blockquote>
+<p><strong>Preserving source characteristics</strong></p>
+</blockquote>
+<ul>
+<li>생성된 이미지 $G(x,\tilde{s})$가 domain invariant characteristics(eg. pose)를 적절히 보존하도록 보장하기 위해 cycle consistency loss를 고안</li>
+</ul>
+<p>$$⁍$$</p>
+<ul>
+<li><p>$\hat{s} = E_y(x)$ 는 input 이미지 x의 추정된 style code이고, y는 x의 original domain 이다.</p>
+</li>
+<li><p>G가 input 이미지 x를 reconstruct 할때  estimated style code of input x $\hat s$를 포함시켜 줌으로서 G는 x의 style을 faithfully(충실히) 변화시키면서도 x의 원래 특성을 보존시킬 수 있다.</p>
+<p>  <strong>—&gt; source의 얼굴이 그대로인 이유는 $\hat s$ 때문이구먼!</strong></p>
+</li>
+</ul>
+<blockquote>
+<p><strong>Full objective</strong></p>
+</blockquote>
+<p>$$⁍$$</p>
+<ul>
+<li><p>$\lambda$  term들은 해당 loss의 hyper-parameters</p>
+</li>
+<li><p><strong>중요! 이 논문에서는 latent-vector(mapping network) 대신 reference image(style encoder)를 사용하여 style code를 generate할 때에도 같은 objective를 사용하였다! —&gt; more training detail은 Appendix B 참고!</strong></p>
+<p>—&gt; 사실상 위의 $L_{sty}$ 에 대한 얘기인데, 이 objective는 latent vector를 style code로 매핑하는 mapping network F 라는 녀석에 대한 loss였는데,</p>
+</li>
+</ul>
+<p>—&gt; 이게 ref image를 style code로 변환하는 style Encoder E 에도 똑같이 적용된다는 소리일까..?</p>
+<h2 id="3-Experiments"><a href="#3-Experiments" class="headerlink" title="3. Experiments"></a>3. Experiments</h2><ul>
+<li>StarGAN-v2의 components들(각각의 모듈들)을 실험했고, 3가지의 leading baseline들과 비교했다.</li>
+<li>모든 실험은 unseen data에 대해서 이루어졌음</li>
+</ul>
+<blockquote>
+<p><strong>Baselines</strong></p>
+</blockquote>
+<ul>
+<li>MUNIT, DRIT, MSGAN 을 baseline으로 삼았고, 이들은 <strong>two domain간의 multi-modal mapping</strong>을 수행함.</li>
+<li>Multi-domain에 대한 비교를 위해 이들을 각각의 이미지 domain pairs에 대해 여러번 학습시킴</li>
+<li>StarGAN이랑도 비교했는데(v1), 이 모델은 multiple domain에 대한 mapping을 single generator로 배움</li>
+</ul>
+<blockquote>
+<p><strong>Datasets</strong></p>
+</blockquote>
+<ul>
+<li>CelebA-HQ와 AFHQ data set에 대해 평가</li>
+<li>CelebA-HQ 데이터 셋을 male, female의 두가지 도메인으로 나누었음.</li>
+<li>domain-label을 제외하고는 추가적인 정보(e.g. facial attributes of CelebA)를 사용하지 않았으며, 모델로 하여금 비지도적으로 style들에 대한 정보를 배우도록 했음.</li>
+<li>공정한 비교를 위해 훈련시 이미지를 256X256 으로 resize했고, 이 사이지는 baseline들의 최대 resolution 사이즈임.</li>
+</ul>
+<blockquote>
+<p><strong>Evaluation metrics</strong></p>
+</blockquote>
+<ul>
+<li><p>우선 평가해야 할 metric은 두 가지인데,</p>
+<pre><code>1. visual quality  —&gt; **FID**(Frechet Inception distance): distance between two distributions of real and generated images (lower is better)</code></pre>
+<p>  <strong>Q. FID가 visual quality에 대한 지표도 포함하는가..?</strong></p>
+<p>  <img src="/image/post_image/20210719/_2021-07-18__3.07.09.png" alt="/image/post_image/20210719/_2021-07-18__3.07.09.png"></p>
+<ol>
+<li><p>diversity of generated images —&gt; <strong>LPIPS</strong>(Learned Perceptual Image Patch Similarity): (higher lis better)</p>
+<p> <img src="/image/post_image/20210719/_2021-07-18__12.05.56.png" alt="/image/post_image/20210719/_2021-07-18__12.05.56.png"></p>
+</li>
+</ol>
+</li>
+<li><p>위 표는 StarGAN-v1에 v2의 모듈 혹은 기법들을 한 개씩 추가하며 measure한 것!</p>
+<p>  <img src="/image/post_image/20210719/_2021-07-18__12.07.02.png" alt="/image/post_image/20210719/_2021-07-18__12.07.02.png"></p>
+</li>
+<li><p>(A): StarGAN-v1의 결과 —&gt; 메이크업만을 옮겨 local change만 이끌어낼 뿐임</p>
+</li>
+<li><p>(B): ACGAN Discrimintor를 multi-task discriminator로 변경 —&gt; generator가 input이미지의 global structure를 변경할 수 있게함.</p>
+</li>
+<li><p>(C): R1 regularization &amp; AdaIN 적용 —&gt; training stablility를 증가시킴</p>
+<p>  —&gt; (A),(B),(C)의 경우 주어진 input image와 target domain에 대해서 multiple output을 낼수 없기 때문에, LPIPS 측정이 불가하다. ⇒ 1장에서 다양성을 measure할 수 없으므로</p>
+</li>
+<li><p>(D): diversity(다양성)을 이끌어내기위해 latent code z를 generator G에 바로 넣는다는 생각을 할 수 있음 —&gt; 실험해본 결과, multi-domain 시나리오에서 이러한 baseline는 네트워크로 하여금 의미있는 styles를 배우게 하지 못하고, 기대하는 diversity를 내지 못했다.</p>
+</li>
+<li><p><strong>때문에</strong>, 논문에서는</p>
+<ol>
+<li><strong>latent code가 domain을 구분 하는데에 능력이 없고,</strong> </li>
+<li><strong>latent reconstruction loss는 domain-specific 한 style 보다 domain-shared style을 모델링할 것이라 추측했다.</strong></li>
+</ol>
+</li>
+<li><p>G에 latent code를 direct로 주기보단, mapping network F를 통해 z에서 domain-specific style code s를 생성하여 G에 inject함</p>
+</li>
+<li><p>style reconstruction loss 도 소개함</p>
+</li>
+<li><p>주목해야할 것은, mapping network의 각각의 output branch가 특정한 domian 에 대한 것이라는 것이다. 때문에 stylecode는 domain을 구분하는 것에 대한 ambiguity(모호성)이 없다.</p>
+</li>
+<li><p>latent reconstruction loss(F에 대한 Loss)와 다르게, style reconstruction loss는(E에 대한 Loss) generator로 하여금, domain-specific style을 반영하여 이미지를 생성하게 한다. —&gt; (reference image의 style code를 사용하여 이미지를 생성한다는 뜻인듯)</p>
+</li>
+</ul>
+<h3 id="3-2-Comparison-on-diverse-image-synthesis"><a href="#3-2-Comparison-on-diverse-image-synthesis" class="headerlink" title="3.2 Comparison on diverse image synthesis"></a>3.2 Comparison on diverse image synthesis</h3><ul>
+<li>두가지 관점에서 비교할것<ol>
+<li>latent-guided synthesis —&gt; baseline들과 비교할 때, 유일하게 안깨짐 암튼 base들보다 좋다.</li>
+<li>reference-guided synthesis —&gt; ref image로 부터 추출된 style code를 사용함으로 distinctive style을 가져올 수 있었으며, color distribution만 추출해내는 기존 기법들과 차이를 보였다.</li>
+</ol>
+</li>
+<li>Human-evaluation<ul>
+<li>사람들에게 투표시킬 때도 baseline 보다 나았다.</li>
+</ul>
+</li>
+</ul>
+<h2 id="4-Discussion"><a href="#4-Discussion" class="headerlink" title="4. Discussion"></a>4. Discussion</h2><blockquote>
+<p><strong>First</strong></p>
+</blockquote>
+<p>multi-head <strong>mapping network, style encoder</strong> 에 의해서 style code가 도메인에 대해 각각 생성된다. </p>
+<p>—&gt; Generator가 stylecode를 사용하는 것에만 초점을 맞출 수 있다.</p>
+<blockquote>
+<p><strong>Second</strong></p>
+</blockquote>
+<p>기존 baseline들은 style space를 fixed Gaussian distribution을 따른다는 가정을 했으나,</p>
+<p>StarGAN-v2에서는 StyleGAN의 insight에 따라, transformation에 대해 배운 style space에서 생성해냄</p>
+<p><img src="/image/post_image/20210719/_2021-07-18__3.52.55.png" alt="/image/post_image/20210719/_2021-07-18__3.52.55.png"></p>
+<ul>
+<li>FFHQ에 대해서도 Reference-guided synthesis가 좋은 결과를 냈다.</li>
+</ul>
+<h2 id="5-Related-work"><a href="#5-Related-work" class="headerlink" title="5. Related work"></a>5. Related work</h2><ul>
+<li><p>StyleGAN: non-linear mapping function을 도입하여, imput latent code를 style space로 매핑함.</p>
+<p>  —&gt; 그러나 styleGAN은 image를 input으로 받지않아서, real image를 transform 한다라는 task가 자명하지 않다.</p>
+</li>
+<li><p><strong>본 논문의 latent-guided synthesis와 reference-guided synthesis 모두 coarsely(거칠게) labeled dataset으로 train 되었다.</strong></p>
+</li>
+</ul>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">결국 reference guided synthesis로 갈텐데,  </span><br><span class="line">이때 우리는 스타일 합성을 하는 것이지, 헤어 합성이 아니다.</span><br><span class="line">—&gt; 초기에는 스타일 합성 기능을 제공하는 것으로,,? </span><br><span class="line">—&gt; 대신 이를 위해 동양인 dataset에 대한 fine tuning이 필요함.</span><br><span class="line">-&gt; celebA-HQ <span class="number">30000</span>장, <span class="number">1024</span>x1024</span><br><span class="line"></span><br><span class="line"><span class="number">1.</span> 초기 launching시에 우리가 제공하는 스타일들을 보여주고,</span><br><span class="line"><span class="number">10</span>개정도 scrap할 수 있게(왓챠나 넷플릭스 처럼)함.</span><br><span class="line"></span><br><span class="line"><span class="number">2.</span> 우리는 AI 스타일 합성을 제공하며, 이는 해당 사진의 헤어, 메이크업 등을 포함함</span><br><span class="line"><span class="number">3.</span> 따라서 우리는 스타일 전반에 대한 설명 또한 제공(메이크업 정보, 헤어 정보 등)</span><br></pre></td></tr></table></figure>
+
+<h2 id="6-Conclusion"><a href="#6-Conclusion" class="headerlink" title="6. Conclusion"></a>6. Conclusion</h2><ul>
+<li>StarGAN-v2는 one domain to diverse images of a target domain and supporting multiple target domain</li>
+</ul>
+<h2 id="Appendix"><a href="#Appendix" class="headerlink" title="Appendix"></a>Appendix</h2><h3 id="B-Training-details"><a href="#B-Training-details" class="headerlink" title="B. Training details"></a>B. Training details</h3><ul>
+<li>batch size: 8</li>
+<li>iteration: 100,000(100K)</li>
+<li>Tesla V100 GPU 1개, 3 days</li>
+<li>$\lambda_{sty} = 1, ; \lambda_{ds} = 1, ; \lambda_{cyc} = 1$ for CelebA-HQ</li>
+<li>non-saturating adversarial loss + R1 regularization $\gamma = 1$</li>
+<li>Adam optimizer with $\beta_1 = 0, : \beta_2 = 0.99$</li>
+<li>Learning rates for $G, D, and ; E = 10^{-4}$</li>
+<li>Learning rates for $F = 10^{-6}$</li>
+<li>initialize the weights = He initialization</li>
+<li>set biases to zero —&gt; except for biases associated with scaling vector of AdaIN(set to one)</li>
+</ul>
+<h3 id="E-Network-architecture"><a href="#E-Network-architecture" class="headerlink" title="E. Network architecture"></a>E. Network architecture</h3><blockquote>
+<p><strong>Generator</strong></p>
+</blockquote>
+<p><img src="/image/post_image/20210719/_2021-07-18__5.41.46.png" alt="/image/post_image/20210719/_2021-07-18__5.41.46.png"></p>
+<blockquote>
+<p><strong>Mapping Network</strong></p>
+</blockquote>
+<p><img src="/image/post_image/20210719/_2021-07-18__5.48.09.png" alt="/image/post_image/20210719/_2021-07-18__5.48.09.png"></p>
+<p>—&gt; K output branches가 있는데, 이는 domain의 개수를 뜻함.</p>
+<p>—&gt; 첫 네 개의 FC는 domain간 공유되고, 뒤의 네 개는 domain별로 존재.</p>
+<p>—&gt; 각각의 dimention 정보</p>
+<ul>
+<li><strong>latent code: 16</strong></li>
+<li><strong>hidden layer: 512</strong></li>
+<li><strong>style code: 64</strong></li>
+</ul>
+<p>—&gt; latent code는 standard Gaussian distribution에서 sample</p>
+<p>—&gt; pixel normalization을 latent code에 적용하지 않았다.(model performance를 올리지 못하는 것으로 밝혀짐)</p>
+<p>—&gt; feture normalization도 시도해봤으나, 이도 잘 안되는 것으로 파악</p>
+<blockquote>
+<p><strong>Style encoder</strong></p>
+</blockquote>
+<p><img src="/image/post_image/20210719/_2021-07-18__8.54.57.png" alt="/image/post_image/20210719/_2021-07-18__8.54.57.png"></p>
+<p>—&gt; CNN with K output branch</p>
+<p>—&gt; 6개의 pre-activation residual block이 domain간에 공유</p>
+<p>—&gt; Dimension 정보</p>
+<ul>
+<li><strong>Output: 64 x K</strong></li>
+</ul>
+<blockquote>
+<p><strong>Discriminator</strong></p>
+</blockquote>
+<ul>
+<li><p>multi task discriminator로서 위의 테이블 공유</p>
+</li>
+<li><p>K개의 FC, for real/fake classification of each domain</p>
+<p>  —&gt; Dimension 정보</p>
+<ul>
+<li><strong>D = 1 (real/fake)</strong></li>
+</ul>
+</li>
+<li><p>multi-task discriminator가 다른 conditional discriminators 보다 나음을 확인</p>
+</li>
+</ul>
+<h1 id="Fine-Tuning-관련"><a href="#Fine-Tuning-관련" class="headerlink" title="Fine Tuning 관련"></a>Fine Tuning 관련</h1><ul>
+<li><p>Azure V100 x 8개</p>
+<p>  <img src="/image/post_image/20210719/_2021-07-18__9.46.30.png" alt="/image/post_image/20210719/_2021-07-18__9.46.30.png"></p>
+<p>—&gt; 30,000장 학습, 1개, 3일(72시간) ⇒ 8개, 9시간 2725 x 9 = <strong>24,000원</strong></p>
+</li>
+<li><p>V100 else</p>
+<p>  <img src="/image/post_image/20210719/_2021-07-18__9.47.56.png" alt="/image/post_image/20210719/_2021-07-18__9.47.56.png"></p>
+</li>
+</ul>
+
+        </div>
+
+        
+
+        <!-- 댓글부분 -->
+        <br /><br />
+        <div id="disqus_thread"></div>
+        <script>
+            /**
+            *  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+            *  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables*/
+            /*
+            var disqus_config = function () {
+            this.page.url = PAGE_URL;  // Replace PAGE_URL with your page's canonical URL variable
+            this.page.identifier = PAGE_IDENTIFIER; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+            };
+            */
+            (function() { // DON'T EDIT BELOW THIS LINE
+            var d = document, s = d.createElement('script');
+            s.src = 'https://longshiine.disqus.com/embed.js';
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+            })();
+        </script>
+        <noscript>Please enable JavaScript to view the <a target="_blank" rel="noopener" href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+        <script id="dsq-count-scr" src="//longshiine.disqus.com/count.js" async></script>                  
+        <br /><br />
+
+        <section class="post-tags">
+            <div>
+                <!-- <span>Tag(s):</span>
+                <span class="tag">
+                    
+                    
+                        <a href="/tags/DeepLearning/"># DeepLearning</a>
+                    
+                        <a href="/tags/ComputerVision/"># ComputerVision</a>
+                    
+                        <a href="/tags/GAN/"># GAN</a>
+                    
+                        <a href="/tags/ImageSynthesis/"># ImageSynthesis</a>
+                    
+                        
+                </span> -->
+            </div>
+            <div>
+                <a href="javascript:window.history.back();">back</a>
+                <span>· </span>
+                <a href="/">home</a>
+            </div>
+        </section>
+        <section class="post-nav">
+            
+            
+            <a class="next" rel="next" href="/2021/02/05/Priority-Queue-%EC%9A%B0%EC%84%A0%EC%88%9C%EC%9C%84%ED%81%90/">Priority Queue(우선순위큐)</a>
+            
+        </section>
+
+
+    </article>
+</div>
+
+        </div>
+        <footer id="footer" class="footer">
+    <div class="copyright">
+        <span>© Jay_Kim | Powered by <a href="https://hexo.io" target="_blank">Hexo</a> & <a href="https://github.com/Siricee/hexo-theme-Chic" target="_blank">Chic</a></span>
+    </div>
+</footer>
+
+    </div>
+</body>
+</html>
