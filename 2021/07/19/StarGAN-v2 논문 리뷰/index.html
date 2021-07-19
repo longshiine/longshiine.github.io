@@ -252,7 +252,7 @@
 <p>A good image-to-image translation model should learn a mapping between different visual domains while satisfying the following properties: 1) diversity of generated images and 2) scalability over multiple domains. Existing methods address either of the issues, having limited diversity or multiple models for all domains. We propose StarGAN v2, a single framework that tackles both and shows significantly improved results over the baselines. Experiments on CelebA-HQ and a new animal faces dataset (AFHQ) validate our superiority in terms of visual quality, diversity, and scalability. To better assess image-to-image translation models, we release AFHQ, high-quality animal faces with large inter- and intra-domain differences. The code, pretrained models, and dataset can be found at this https URL.</p>
 </blockquote>
 <div class="image-box">
-                <img src="/image/post_image/20210719/_2021-07-08__4.37.07.png" style="asdf" alt="" title="" class="">
+                <img src="/image/post_image/20210719/_2021-07-08__4.37.07.png" style="width:80%" alt="" title="" class="">
                 <p class="image-box-title"></p>
             </div>
 
@@ -336,7 +336,7 @@
 </li>
 <li><p>아래의 Figure 2가 전체 프레임워크의 overview를 보여준다. 총 4개의 모듈로 구성된다.</p>
   <div class="image-box">
-                <img src="/image/post_image/20210719/_2021-07-16__9.34.22.png" style="asdf" alt="" title="" class="">
+                <img src="/image/post_image/20210719/_2021-07-16__9.34.22.png" style="width:80%" alt="" title="" class="">
                 <p class="image-box-title"></p>
             </div>
 
@@ -449,14 +449,14 @@
 <pre><code>1. visual quality  —&gt; **FID**(Frechet Inception distance): distance between two distributions of real and generated images (lower is better)</code></pre>
 <p>  <strong>Q. FID가 visual quality에 대한 지표도 포함하는가..?</strong></p>
   <div class="image-box">
-                <img src="/image/post_image/20210719/_2021-07-18__3.07.09.png" style="asdf" alt="" title="" class="">
+                <img src="/image/post_image/20210719/_2021-07-18__3.07.09.png" style="width:80%" alt="" title="" class="">
                 <p class="image-box-title"></p>
             </div>
 
 <ol>
 <li><p>diversity of generated images —&gt; <strong>LPIPS</strong>(Learned Perceptual Image Patch Similarity): (higher lis better)</p>
  <div class="image-box">
-                <img src="/image/post_image/20210719/_2021-07-18__12.05.56.png" style="asdf" alt="" title="" class="">
+                <img src="/image/post_image/20210719/_2021-07-18__12.05.56.png" style="width:80%" alt="" title="" class="">
                 <p class="image-box-title"></p>
             </div>
 </li>
@@ -464,7 +464,7 @@
 </li>
 <li><p>위 표는 StarGAN-v1에 v2의 모듈 혹은 기법들을 한 개씩 추가하며 measure한 것!</p>
   <div class="image-box">
-                <img src="/image/post_image/20210719/_2021-07-18__12.07.02.png" style="asdf" alt="" title="" class="">
+                <img src="/image/post_image/20210719/_2021-07-18__12.07.02.png" style="width:80%" alt="" title="" class="">
                 <p class="image-box-title"></p>
             </div>
 </li>
@@ -508,7 +508,7 @@
 <h3 id="Second"><a href="#Second" class="headerlink" title="Second"></a><strong>Second</strong></h3><p>기존 baseline들은 style space를 fixed Gaussian distribution을 따른다는 가정을 했으나,</p>
 <p>StarGAN-v2에서는 StyleGAN의 insight에 따라, transformation에 대해 배운 style space에서 생성해냄</p>
 <div class="image-box">
-                <img src="/image/post_image/20210719/_2021-07-18__3.52.55.png" style="asdf" alt="" title="" class="">
+                <img src="/image/post_image/20210719/_2021-07-18__3.52.55.png" style="width:80%" alt="" title="" class="">
                 <p class="image-box-title"></p>
             </div>
 
@@ -540,12 +540,12 @@
 <li>set biases to zero —&gt; except for biases associated with scaling vector of AdaIN(set to one)</li>
 </ul>
 <h3 id="E-Network-architecture"><a href="#E-Network-architecture" class="headerlink" title="E. Network architecture"></a>E. Network architecture</h3><h4 id="Generator"><a href="#Generator" class="headerlink" title="Generator"></a><strong>Generator</strong></h4><div class="image-box">
-                <img src="/image/post_image/20210719/_2021-07-18__5.41.46.png" style="asdf" alt="" title="" class="">
+                <img src="/image/post_image/20210719/_2021-07-18__5.41.46.png" style="width:80%" alt="" title="" class="">
                 <p class="image-box-title"></p>
             </div>
 
 <h4 id="Mapping-Network"><a href="#Mapping-Network" class="headerlink" title="Mapping Network"></a><strong>Mapping Network</strong></h4><div class="image-box">
-                <img src="/image/post_image/20210719/_2021-07-18__5.48.09.png" style="asdf" alt="" title="" class="">
+                <img src="/image/post_image/20210719/_2021-07-18__5.48.09.png" style="width:80%" alt="" title="" class="">
                 <p class="image-box-title"></p>
             </div>
 
@@ -561,7 +561,7 @@
 <p>—&gt; pixel normalization을 latent code에 적용하지 않았다.(model performance를 올리지 못하는 것으로 밝혀짐)</p>
 <p>—&gt; feture normalization도 시도해봤으나, 이도 잘 안되는 것으로 파악</p>
 <h4 id="Style-encoder"><a href="#Style-encoder" class="headerlink" title="Style encoder"></a><strong>Style encoder</strong></h4><div class="image-box">
-                <img src="/image/post_image/20210719/_2021-07-18__8.54.57.png" style="asdf" alt="" title="" class="">
+                <img src="/image/post_image/20210719/_2021-07-18__8.54.57.png" style="width:80%" alt="" title="" class="">
                 <p class="image-box-title"></p>
             </div>
 
@@ -586,7 +586,7 @@
 <h1 id="Fine-Tuning-관련"><a href="#Fine-Tuning-관련" class="headerlink" title="Fine Tuning 관련"></a>Fine Tuning 관련</h1><ul>
 <li><p>Azure V100 x 8개</p>
   <div class="image-box">
-                <img src="/image/post_image/20210719/_2021-07-18__9.46.30.png" style="asdf" alt="" title="" class="">
+                <img src="/image/post_image/20210719/_2021-07-18__9.46.30.png" style="width:80%" alt="" title="" class="">
                 <p class="image-box-title"></p>
             </div>
 
@@ -594,7 +594,7 @@
 </li>
 <li><p>V100 else</p>
   <div class="image-box">
-                <img src="/image/post_image/20210719/_2021-07-18__9.47.56.png" style="asdf" alt="" title="" class="">
+                <img src="/image/post_image/20210719/_2021-07-18__9.47.56.png" style="width:80%" alt="" title="" class="">
                 <p class="image-box-title"></p>
             </div></li>
 </ul>
