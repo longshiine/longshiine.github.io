@@ -121,15 +121,18 @@ export const isRedisEnabled: boolean =
 
 // (if you want to enable redis, only REDIS_HOST and REDIS_PASSWORD are required)
 // we recommend that you store these in a local `.env` file
-export const redisHost: string | null = getEnv('REDIS_HOST', null)
-export const redisPassword: string | null = getEnv('REDIS_PASSWORD', null)
-export const redisUser: string = getEnv('REDIS_USER', 'default')
+export const redisHost: string | null = getEnv('NEXT_PUBLIC_REDIS_HOST', null)
+export const redisPassword: string | null = getEnv(
+  'NEXT_PUBLIC_REDIS_PASSWORD',
+  null
+)
+export const redisUser: string = getEnv('NEXT_PUBLIC_REDIS_USER', 'default')
 export const redisUrl = getEnv(
-  'REDIS_URL',
+  'NEXT_PUBLIC_REDIS_URL',
   `redis://${redisUser}:${redisPassword}@${redisHost}:12094`
 )
 export const redisNamespace: string | null = getEnv(
-  'REDIS_NAMESPACE',
+  'NEXT_PUBLIC_REDIS_NAMESPACE',
   'preview-images'
 )
 
