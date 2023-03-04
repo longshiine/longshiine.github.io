@@ -1,0 +1,11 @@
+# *
+User-agent: *
+Allow: /
+Disallow: /api/get-tweet-ast/*
+Disallow: /api/search-notion
+
+# Host
+Host: https://jang-inspiration.com
+
+# Sitemaps
+Sitemap: https://jang-inspiration.com/sitemap.xml
